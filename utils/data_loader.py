@@ -75,17 +75,13 @@ def group_destinations_by_category(destinations: List[Destination]) -> Dict[str,
         'makanan_berat': [],
         'makanan_ringan': [],
         'non_kuliner': [],
-        'oleh_oleh': []
+        'oleh_oleh': [],
+        'all': []
     }
     
     for dest in destinations:
         for category in dest.kategori:
             if category in grouped:
                 grouped[category].append(dest)
-            elif category == 'all':
-              grouped['makanan_berat'].append(dest)
-              grouped['makanan_ringan'].append(dest)
-              grouped['non_kuliner'].append(dest)
-              grouped['oleh_oleh'].append(dest)
     
     return grouped

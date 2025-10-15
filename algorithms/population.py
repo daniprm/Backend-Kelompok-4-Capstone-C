@@ -31,7 +31,6 @@ class Population:
             self, 
             all_destinations: List[Destination],
             start_point: Tuple[float, float],
-            # end_point: Tuple[float, float] = None
         ):
         """
         Inisialisasi populasi awal dengan kromosom random yang valid
@@ -64,7 +63,6 @@ class Population:
             chromosome = self._create_random_valid_chromosome(
                 grouped,
                 start_point,
-                # end_point
             )
             self.chromosomes.append(chromosome)
     
@@ -72,7 +70,6 @@ class Population:
             self,
             grouped_destinations: dict,
             start_point: Tuple[float, float],
-            # end_point: Tuple[float, float]
         ) -> Chromosome:
         """
         Membuat satu kromosom random yang valid dengan pola K1, C1, W1, K2, W2, C2, K3, O
@@ -80,7 +77,6 @@ class Population:
         Args:
             grouped_destinations: Dictionary destinasi yang sudah dikelompokkan
             start_point: Titik awal
-            end_point: Titik akhir
             
         Returns:
             Kromosom valid
@@ -94,7 +90,7 @@ class Population:
         genes.append(random.choice(grouped_destinations['makanan_ringan']))
         
         # W1 - Non kuliner pertama
-        genes.append(random.choice(grouped_destinations['non_kuliner']))
+        genes.append(random.choice(grouped_destinations['non_kuliner'] + grouped_destinations['all']))
         
         # K2 - Makanan berat kedua (tidak sama dengan K1)
         available_k2 = [d for d in grouped_destinations['makanan_berat'] if d != genes[0]]
@@ -102,6 +98,7 @@ class Population:
         
         # W2 - Non kuliner kedua (tidak sama dengan W1)
         available_w2 = [d for d in grouped_destinations['non_kuliner'] if d != genes[2]]
+        available_w2.extend(d for d in grouped_destinations['all'] if d not in genes)
         genes.append(random.choice(available_w2))
         
         # C2 - Makanan ringan kedua (tidak sama dengan C1)
@@ -114,7 +111,8 @@ class Population:
         genes.append(random.choice(available_k3))
         
         # O - Oleh-oleh
-        genes.append(random.choice(grouped_destinations['oleh_oleh']))
+        available_o = [d for d in grouped_destinations['all'] if d not in genes]
+        genes.append(random.choice(grouped_destinations['oleh_oleh'] + available_o))
         
         return Chromosome(
                 genes, 
@@ -123,67 +121,28 @@ class Population:
             )
     
     def evaluate_fitness(self):
-        """
-        Menghitung fitness untuk semua kromosom dalam populasi
-        """
         for chromosome in self.chromosomes:
             chromosome.calculate_fitness()
     
     def sort_by_fitness(self):
-        """
-        Mengurutkan kromosom berdasarkan fitness (tertinggi ke terendah)
-        """
         self.chromosomes.sort(reverse=True, key=lambda x: x.get_fitness())
     
     def get_best_chromosome(self) -> Chromosome:
-        """
-        Mendapatkan kromosom terbaik (fitness tertinggi)
-        
-        Returns:
-            Kromosom dengan fitness terbaik
-        """
         if not self.chromosomes:
             return None
         return max(self.chromosomes, key=lambda x: x.get_fitness())
     
     def get_best_n_chromosomes(self, n: int) -> List[Chromosome]:
-        """
-        Mendapatkan n kromosom terbaik
-        
-        Args:
-            n: Jumlah kromosom yang diinginkan
-            
-        Returns:
-            List n kromosom terbaik
-        """
         self.sort_by_fitness()
         return self.chromosomes[:n]
     
     def add_chromosome(self, chromosome: Chromosome):
-        """
-        Menambahkan kromosom ke populasi
-        
-        Args:
-            chromosome: Kromosom yang akan ditambahkan
-        """
         self.chromosomes.append(chromosome)
     
     def replace_population(self, new_chromosomes: List[Chromosome]):
-        """
-        Mengganti seluruh populasi dengan kromosom baru
-        
-        Args:
-            new_chromosomes: List kromosom baru
-        """
         self.chromosomes = new_chromosomes
     
     def get_average_fitness(self) -> float:
-        """
-        Mendapatkan rata-rata fitness populasi
-        
-        Returns:
-            Rata-rata fitness
-        """
         if not self.chromosomes:
             return 0.0
         return sum(c.get_fitness() for c in self.chromosomes) / len(self.chromosomes)

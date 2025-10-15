@@ -11,19 +11,6 @@ from algorithms.two_opt import TwoOptOptimizer
 from models.destination import Destination
 
 class HybridGeneticAlgorithm:
-    """
-    Class untuk implementasi Hybrid Genetic Algorithm
-    
-    Menggabungkan GA untuk eksplorasi global dengan 2-Opt untuk optimasi lokal
-    
-    Attributes:
-        population_size: Ukuran populasi
-        generations: Jumlah generasi
-        crossover_rate: Probabilitas crossover
-        mutation_rate: Probabilitas mutasi
-        elitism_count: Jumlah individu elit yang dipertahankan
-        tournament_size: Ukuran tournament untuk seleksi
-    """
     
     def __init__(self,
                  population_size: int = 100,
@@ -31,22 +18,10 @@ class HybridGeneticAlgorithm:
                  crossover_rate: float = 0.8,
                  mutation_rate: float = 0.1,
                  elitism_count: int = 2,
-                 tournament_size: int = 5,
+                 tournament_size: int = 3,
                  use_2opt: bool = True,
                  two_opt_iterations: int = 500):
-        """
-        Inisialisasi HGA
         
-        Args:
-            population_size: Ukuran populasi
-            generations: Jumlah maksimal generasi
-            crossover_rate: Probabilitas crossover
-            mutation_rate: Probabilitas mutasi
-            elitism_count: Jumlah elit yang dipertahankan
-            tournament_size: Ukuran tournament selection
-            use_2opt: Apakah menggunakan 2-opt optimization
-            two_opt_iterations: Maksimal iterasi untuk 2-opt
-        """
         self.population_size = population_size
         self.generations = generations
         self.crossover_rate = crossover_rate
@@ -67,7 +42,6 @@ class HybridGeneticAlgorithm:
     def run(self, 
             destinations: List[Destination],
             start_point: Tuple[float, float],
-            # end_point: Tuple[float, float] = None,
             num_solutions: int = 3) -> List[Chromosome]:
         """
         Menjalankan HGA untuk menemukan solusi rute optimal
@@ -92,7 +66,6 @@ class HybridGeneticAlgorithm:
         population.initialize_random_population(
             destinations,
             start_point,
-            # end_point
           )
         population.evaluate_fitness()
         
@@ -125,7 +98,8 @@ class HybridGeneticAlgorithm:
                 break
             
             # 8. Generasi populasi baru
-            new_population = self._create_new_generation(population)
+            # new_population = self._create_new_generation(population)
+            new_population = self._create_new_generation_modified(population, destinations, start_point)
             population = new_population
         
         print(f"\n=== HGA Selesai ===")
@@ -166,12 +140,21 @@ class HybridGeneticAlgorithm:
                 population.chromosomes,
                 self.tournament_size
             )
-            
+            parent3 = self.operators.tournament_selection(
+                population.chromosomes,
+                self.tournament_size
+            )
+            parent4 = self.operators.tournament_selection(
+                population.chromosomes,
+                self.tournament_size
+            )
+
             # 5. Crossover
             if random.random() < self.crossover_rate:
-                offspring1, offspring2 = self.operators.order_crossover(parent1, parent2)
+                offspring1, offspring2 = self.operators.order_crossover_modified(parent1, parent2, parent3, parent4)
             else:
                 offspring1, offspring2 = parent1.copy(), parent2.copy()
+            
             
             # 6. Mutasi
             offspring1 = self.operators.swap_mutation(offspring1, self.mutation_rate)
@@ -190,9 +173,67 @@ class HybridGeneticAlgorithm:
         new_chromosomes = new_chromosomes[:self.population_size]
         
         return Population(chromosomes=new_chromosomes, population_size=self.population_size)
+
+    def _create_new_generation_modified(self, population: Population, destinations: List[Destination], start_point: Tuple[float, float]) -> Population:
+        """
+        Membuat generasi baru dengan satu offspring hasil evolusi, sisanya random population.
+        
+        Args:
+            population: Populasi saat ini
+            
+        Returns:
+            Populasi generasi baru
+        """
+        new_chromosomes = []
+
+        # Elitism: Pertahankan individu terbaik
+        elite_chromosomes = population.get_best_n_chromosomes(self.elitism_count)
+        new_chromosomes.extend([c.copy() for c in elite_chromosomes])
+
+        # Hanya satu offspring hasil evolusi
+        parent1 = self.operators.tournament_selection(
+            population.chromosomes, self.tournament_size
+        )
+        parent2 = self.operators.tournament_selection(
+            population.chromosomes, self.tournament_size
+        )
+        parent3 = self.operators.tournament_selection(
+            population.chromosomes, self.tournament_size
+        )
+        parent4 = self.operators.tournament_selection(
+            population.chromosomes, self.tournament_size
+        )
+
+        if random.random() < self.crossover_rate:
+            offspring, _ = self.operators.order_crossover_modified(parent1, parent2, parent3, parent4)
+        else:
+            offspring = parent1.copy()
+
+        offspring = self.operators.swap_mutation(offspring, self.mutation_rate)
+        if self.use_2opt:
+            offspring = self.two_opt.optimize_with_constraints(offspring)
+
+        new_chromosomes.append(offspring)
+
+        # Sisanya random population seperti inisialisasi awal
+        remaining = self.population_size - len(new_chromosomes)
+        if remaining > 0:
+            # Ambil data dari populasi awal (destinations dan start_point)
+            destinations = destinations
+            start_point = start_point
+
+            temp_population = Population(population_size=remaining)
+            temp_population.initialize_random_population(destinations, start_point)
+            temp_population.evaluate_fitness()
+            new_chromosomes.extend(temp_population.chromosomes)
+
+        # Batasi ukuran populasi
+        new_chromosomes = new_chromosomes[:self.population_size]
+
+        return Population(chromosomes=new_chromosomes, population_size=self.population_size)
     
     # TODO: Pengatur konvergensi
-    def _check_convergence(self, generation: int, patience: int = 1000) -> bool:
+    def _check_convergence(self, generation: int, patience: int = 2500) -> bool:
         """
         Mengecek apakah algoritma sudah konvergen
         

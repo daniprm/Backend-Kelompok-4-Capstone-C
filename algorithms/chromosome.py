@@ -24,19 +24,9 @@ class Chromosome:
             self,
             genes: List[Destination],
             start_point: Tuple[float, float],
-            # end_point: Tuple[float, float] = None
         ):
-        """
-        Inisialisasi kromosom
-        
-        Args:
-            genes: List destinasi dalam urutan tertentu
-            start_point: Koordinat titik awal
-            end_point: Koordinat titik akhir (default sama dengan start_point)
-        """
         self.genes = genes
         self.start_point = start_point
-        # self.end_point = end_point if end_point else start_point
         self.fitness_value = None
     
     def calculate_fitness(self) -> float:
@@ -50,7 +40,6 @@ class Chromosome:
         route = Route(
             self.start_point, 
             self.genes, 
-            # self.end_point
           )
         total_distance = route.calculate_total_distance()
         
@@ -66,7 +55,6 @@ class Chromosome:
     def get_fitness(self) -> float:
         """
         Mendapatkan nilai fitness (hitung jika belum ada)
-        
         Returns:
             Nilai fitness
         """
@@ -84,7 +72,6 @@ class Chromosome:
         route = Route(
             self.start_point, 
             self.genes, 
-            # self.end_point
             )
         return route.calculate_total_distance()
     
@@ -112,7 +99,6 @@ class Chromosome:
         return Chromosome(
             genes=self.genes.copy(),
             start_point=self.start_point,
-            # end_point=self.end_point
         )
     
     def __repr__(self) -> str:

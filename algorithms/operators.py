@@ -187,13 +187,6 @@ class GAOperators:
         
         # idx = 0
         for i in range(size):
-            # if offspring1_genes[i] is None:
-            #     if idx < len(parent2_filtered):
-            #         offspring1_genes[i] = parent2_filtered[idx]
-            #         idx += 1
-            #     else:
-            #         # Fallback: gunakan gen dari parent1 jika parent2_filtered habis
-            #         offspring1_genes[i] = parent1.genes[i]
             if offspring1_genes[i] is None and parent2_filtered[i] is not None:
                 offspring1_genes[i] = parent2_filtered[i]
             elif offspring1_genes[i] is None and parent3_filtered[i] is not None:
@@ -224,17 +217,7 @@ class GAOperators:
             gene if id(gene) not in selected_ids2 else None
             for gene in parent4.genes
         ]
-        
-        
-        # idx = 0
-        # for i in range(size):
-        #     if offspring2_genes[i] is None:
-        #         if idx < len(parent1_filtered):
-        #             offspring2_genes[i] = parent1_filtered[idx]
-        #             idx += 1
-        #         else:
-        #             # Fallback: gunakan gen dari parent2 jika parent1_filtered habis
-        #             offspring2_genes[i] = parent2.genes[i]
+ 
         for i in range(size):
             if offspring2_genes[i] is None and parent1_filtered[i] is not None:
                 offspring2_genes[i] = parent1_filtered[i]
@@ -352,9 +335,15 @@ class GAOperators:
         mutated_genes = chromosome.genes.copy()
         size = len(mutated_genes)
         
-        # Pilih dua posisi random dan tukar
-        pos1 = random.randint(0, size - 1)
-        pos2 = random.randint(0, size - 1)
+        # Pilih dua posisi yang boleh ditukar sesuai kategori
+        allowed_swaps = [
+            [0, 3, 6],  # swap antara index 0, 3, 6
+            [1, 5],     # swap antara index 1 dan 5
+            [2, 4]      # swap antara index 2 dan 4
+        ]
+        # Pilih satu grup swap secara acak
+        swap_group = random.choice(allowed_swaps)
+        pos1, pos2 = random.sample(swap_group, 2)
         
         mutated_genes[pos1], mutated_genes[pos2] = mutated_genes[pos2], mutated_genes[pos1]
         

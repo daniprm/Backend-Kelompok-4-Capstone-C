@@ -25,19 +25,19 @@ def run_example():
     print(f"   [OK] Berhasil memuat {len(destinations)} destinasi\n")
     
     # 2. Setup lokasi user (contoh: Tugu Pahlawan Surabaya)
-    user_location = (-7.2792995174612924, 112.79426806984044)  # ITS
+    user_location = (-7.256459823665688, 112.77937118200266)
     print(f"2. Lokasi user: {user_location}")
-    print(f"   (ITS, Surabaya)\n")
+    print(f"   (Puncak Dharmahusada, Kalijudan, Mulyorejo, Surabaya)\n")
     
     # 3. Inisialisasi HGA dengan parameter optimal
     print("3. Inisialisasi Hybrid Genetic Algorithm...")
     hga = HybridGeneticAlgorithm(
-        population_size=40,      # Populasi lebih kecil untuk testing cepat
-        generations=2000,         # Generasi lebih sedikit untuk testing
+        population_size=100,      # Populasi lebih kecil untuk testing cepat
+        generations=5000,         # Generasi lebih sedikit untuk testing
         crossover_rate=0.8,
         mutation_rate=0.1,
-        elitism_count=1,
-        tournament_size=5,
+        elitism_count=3,
+        tournament_size=10,
         use_2opt=True,
         two_opt_iterations=1000
     )

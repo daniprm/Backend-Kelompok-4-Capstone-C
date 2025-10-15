@@ -1,7 +1,7 @@
 {
   "user_location": [
-    -7.2792995174612924,
-    112.79426806984044
+    -7.256459823665688,
+    112.77937118200266
   ],
   "hga_config": {
     "population_size": 50,
@@ -13,58 +13,69 @@
   "solutions": [
     {
       "start_point": [
-        -7.2792995174612924,
-        112.79426806984044
+        -7.256459823665688,
+        112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.34,
+      "total_distance_km": 7.12,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Minati",
+          "nama": "Warung Bu Yeni",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.286154,
-            112.786137
+            -7.2520724,
+            112.7687264
           ]
         },
         {
           "order": 2,
-          "nama": "Dapur Bu Erna",
+          "nama": "JEVRE Drink",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.2767233,
-            112.7649315
+            -7.253048,
+            112.761308
           ]
         },
         {
           "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Gelora 10 Nopember",
           "kategori": [
-            "makanan_berat"
+            "non_kuliner"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.251844,
+            112.756287
           ]
         },
         {
           "order": 4,
-          "nama": "Depot Terasa Nikmat",
+          "nama": "POIN STEAK",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.276346,
-            112.755779
+            -7.2720872,
+            112.7587061
           ]
         },
         {
           "order": 5,
+          "nama": "Museum Etnografi",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.272492,
+            112.757315
+          ]
+        },
+        {
+          "order": 6,
           "nama": "Sang Mboizz",
           "kategori": [
             "makanan_ringan"
@@ -75,97 +86,97 @@
           ]
         },
         {
-          "order": 6,
-          "nama": "Tahu Campur Cak Ali",
+          "order": 7,
+          "nama": "Sate Asin Garuda",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2660686,
-            112.76173
-          ]
-        },
-        {
-          "order": 7,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
-          "kategori": [
-            "non_kuliner"
-          ],
-          "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.280941,
+            112.746563
           ]
         },
         {
           "order": 8,
-          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "nama": "Mirota Batik & Handicraft",
           "kategori": [
-            "non_kuliner"
+            "oleh_oleh"
           ],
           "coordinates": [
-            -7.2640551,
-            112.7453148
+            -7.276708517,
+            112.7473842
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 1,
-      "fitness": 0.11994823040706194
+      "fitness": 0.1403832744194694
     },
     {
       "start_point": [
-        -7.2792995174612924,
-        112.79426806984044
+        -7.256459823665688,
+        112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.34,
+      "total_distance_km": 7.12,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Minati",
+          "nama": "Warung Bu Yeni",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.286154,
-            112.786137
+            -7.2520724,
+            112.7687264
           ]
         },
         {
           "order": 2,
-          "nama": "Dapur Bu Erna",
+          "nama": "JEVRE Drink",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.2767233,
-            112.7649315
+            -7.253048,
+            112.761308
           ]
         },
         {
           "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Gelora 10 Nopember",
           "kategori": [
-            "makanan_berat"
+            "non_kuliner"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.251844,
+            112.756287
           ]
         },
         {
           "order": 4,
-          "nama": "Depot Terasa Nikmat",
+          "nama": "POIN STEAK",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.276346,
-            112.755779
+            -7.2720872,
+            112.7587061
           ]
         },
         {
           "order": 5,
+          "nama": "Museum Etnografi",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.272492,
+            112.757315
+          ]
+        },
+        {
+          "order": 6,
           "nama": "Sang Mboizz",
           "kategori": [
             "makanan_ringan"
@@ -176,97 +187,97 @@
           ]
         },
         {
-          "order": 6,
-          "nama": "Tahu Campur Cak Ali",
+          "order": 7,
+          "nama": "Sate Asin Garuda",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2660686,
-            112.76173
-          ]
-        },
-        {
-          "order": 7,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
-          "kategori": [
-            "non_kuliner"
-          ],
-          "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.280941,
+            112.746563
           ]
         },
         {
           "order": 8,
-          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "nama": "Mirota Batik & Handicraft",
           "kategori": [
-            "non_kuliner"
+            "oleh_oleh"
           ],
           "coordinates": [
-            -7.2640551,
-            112.7453148
+            -7.276708517,
+            112.7473842
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 2,
-      "fitness": 0.11994823040706194
+      "fitness": 0.1403832744194694
     },
     {
       "start_point": [
-        -7.2792995174612924,
-        112.79426806984044
+        -7.256459823665688,
+        112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.34,
+      "total_distance_km": 7.12,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Minati",
+          "nama": "Warung Bu Yeni",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.286154,
-            112.786137
+            -7.2520724,
+            112.7687264
           ]
         },
         {
           "order": 2,
-          "nama": "Dapur Bu Erna",
+          "nama": "JEVRE Drink",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.2767233,
-            112.7649315
+            -7.253048,
+            112.761308
           ]
         },
         {
           "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Gelora 10 Nopember",
           "kategori": [
-            "makanan_berat"
+            "non_kuliner"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.251844,
+            112.756287
           ]
         },
         {
           "order": 4,
-          "nama": "Depot Terasa Nikmat",
+          "nama": "POIN STEAK",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.276346,
-            112.755779
+            -7.2720872,
+            112.7587061
           ]
         },
         {
           "order": 5,
+          "nama": "Museum Etnografi",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.272492,
+            112.757315
+          ]
+        },
+        {
+          "order": 6,
           "nama": "Sang Mboizz",
           "kategori": [
             "makanan_ringan"
@@ -277,42 +288,31 @@
           ]
         },
         {
-          "order": 6,
-          "nama": "Tahu Campur Cak Ali",
+          "order": 7,
+          "nama": "Sate Asin Garuda",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2660686,
-            112.76173
-          ]
-        },
-        {
-          "order": 7,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
-          "kategori": [
-            "non_kuliner"
-          ],
-          "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.280941,
+            112.746563
           ]
         },
         {
           "order": 8,
-          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "nama": "Mirota Batik & Handicraft",
           "kategori": [
-            "non_kuliner"
+            "oleh_oleh"
           ],
           "coordinates": [
-            -7.2640551,
-            112.7453148
+            -7.276708517,
+            112.7473842
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 3,
-      "fitness": 0.11994823040706194
+      "fitness": 0.1403832744194694
     }
   ]
 }
