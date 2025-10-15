@@ -1,0 +1,318 @@
+{
+  "user_location": [
+    -7.2792995174612924,
+    112.79426806984044
+  ],
+  "hga_config": {
+    "population_size": 50,
+    "generations": 100,
+    "crossover_rate": 0.8,
+    "mutation_rate": 0.1,
+    "use_2opt": true
+  },
+  "solutions": [
+    {
+      "start_point": [
+        -7.2792995174612924,
+        112.79426806984044
+      ],
+      "total_destinations": 8,
+      "total_distance_km": 8.34,
+      "destinations": [
+        {
+          "order": 1,
+          "nama": "Warung Bu Minati",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.286154,
+            112.786137
+          ]
+        },
+        {
+          "order": 2,
+          "nama": "Dapur Bu Erna",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2767233,
+            112.7649315
+          ]
+        },
+        {
+          "order": 3,
+          "nama": "Nasi Goreng dan Sundukan",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2793805,
+            112.7611722
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Depot Terasa Nikmat",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.276346,
+            112.755779
+          ]
+        },
+        {
+          "order": 5,
+          "nama": "Sang Mboizz",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2751227,
+            112.75597
+          ]
+        },
+        {
+          "order": 6,
+          "nama": "Tahu Campur Cak Ali",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2660686,
+            112.76173
+          ]
+        },
+        {
+          "order": 7,
+          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2680621,
+            112.7477999
+          ]
+        },
+        {
+          "order": 8,
+          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2640551,
+            112.7453148
+          ]
+        }
+      ],
+      "is_valid_order": false,
+      "rank": 1,
+      "fitness": 0.11994823040706194
+    },
+    {
+      "start_point": [
+        -7.2792995174612924,
+        112.79426806984044
+      ],
+      "total_destinations": 8,
+      "total_distance_km": 8.34,
+      "destinations": [
+        {
+          "order": 1,
+          "nama": "Warung Bu Minati",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.286154,
+            112.786137
+          ]
+        },
+        {
+          "order": 2,
+          "nama": "Dapur Bu Erna",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2767233,
+            112.7649315
+          ]
+        },
+        {
+          "order": 3,
+          "nama": "Nasi Goreng dan Sundukan",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2793805,
+            112.7611722
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Depot Terasa Nikmat",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.276346,
+            112.755779
+          ]
+        },
+        {
+          "order": 5,
+          "nama": "Sang Mboizz",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2751227,
+            112.75597
+          ]
+        },
+        {
+          "order": 6,
+          "nama": "Tahu Campur Cak Ali",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2660686,
+            112.76173
+          ]
+        },
+        {
+          "order": 7,
+          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2680621,
+            112.7477999
+          ]
+        },
+        {
+          "order": 8,
+          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2640551,
+            112.7453148
+          ]
+        }
+      ],
+      "is_valid_order": false,
+      "rank": 2,
+      "fitness": 0.11994823040706194
+    },
+    {
+      "start_point": [
+        -7.2792995174612924,
+        112.79426806984044
+      ],
+      "total_destinations": 8,
+      "total_distance_km": 8.34,
+      "destinations": [
+        {
+          "order": 1,
+          "nama": "Warung Bu Minati",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.286154,
+            112.786137
+          ]
+        },
+        {
+          "order": 2,
+          "nama": "Dapur Bu Erna",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2767233,
+            112.7649315
+          ]
+        },
+        {
+          "order": 3,
+          "nama": "Nasi Goreng dan Sundukan",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2793805,
+            112.7611722
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Depot Terasa Nikmat",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.276346,
+            112.755779
+          ]
+        },
+        {
+          "order": 5,
+          "nama": "Sang Mboizz",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.2751227,
+            112.75597
+          ]
+        },
+        {
+          "order": 6,
+          "nama": "Tahu Campur Cak Ali",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.2660686,
+            112.76173
+          ]
+        },
+        {
+          "order": 7,
+          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2680621,
+            112.7477999
+          ]
+        },
+        {
+          "order": 8,
+          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.2640551,
+            112.7453148
+          ]
+        }
+      ],
+      "is_valid_order": false,
+      "rank": 3,
+      "fitness": 0.11994823040706194
+    }
+  ]
+}
