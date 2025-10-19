@@ -1,52 +1,30 @@
 {
   "user_location": [
-    -7.258580555479273,
-    112.78133495120701
+    -7.2575,
+    112.7521
   ],
   "recommendations": [
     {
       "start_point": [
-        -7.258580555479273,
-        112.78133495120701
+        -7.2575,
+        112.7521
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.91,
+      "total_distance_km": 8.96,
       "destinations": [
         {
           "order": 1,
-          "nama": "Dapur Mama INA",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.28802769,
-            112.7665698
-          ]
-        },
-        {
-          "order": 2,
-          "nama": "UD Syafrida Snack, PO",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.2823585,
-            112.7649261
-          ]
-        },
-        {
-          "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Kedai Tuan Roemah",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.263176,
+            112.753382
           ]
         },
         {
-          "order": 4,
+          "order": 2,
           "nama": "Pisang Meler Airlangga 2",
           "kategori": [
             "makanan_ringan"
@@ -57,96 +35,97 @@
           ]
         },
         {
+          "order": 3,
+          "nama": "Pasar Bunga Kayoon",
+          "kategori": [
+            "oleh_oleh",
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.268888,
+            112.747916
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Nasi Pecel dan Penyetan Mas Sugik",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.274348,
+            112.732789
+          ]
+        },
+        {
           "order": 5,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "nama": "Visma Art & Design Gallery",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.265988,
+            112.738307
           ]
         },
         {
           "order": 6,
-          "nama": "Balai Kota Surabaya",
+          "nama": "Siomay AMA",
           "kategori": [
-            "non_kuliner"
+            "makanan_ringan"
           ],
           "coordinates": [
-            -7.259445,
-            112.746996
+            -7.259327232,
+            112.7237825
           ]
         },
         {
           "order": 7,
-          "nama": "Pasar Genteng Baru",
+          "nama": "Rawon Abah Pangat",
           "kategori": [
-            "all"
+            "makanan_berat"
           ],
           "coordinates": [
-            -7.258516471,
-            112.7407339
+            -7.255221556,
+            112.7351434
           ]
         },
         {
           "order": 8,
-          "nama": "Museum Surabaya",
+          "nama": "Surabaya Kriya Gallery (SKG) SIOLA",
           "kategori": [
-            "non_kuliner"
+            "oleh_oleh"
           ],
           "coordinates": [
-            -7.2561991,
-            112.7378506
+            -7.2562015,
+            112.7374846
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 1
     },
     {
       "start_point": [
-        -7.258580555479273,
-        112.78133495120701
+        -7.2575,
+        112.7521
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.91,
+      "total_distance_km": 8.96,
       "destinations": [
         {
           "order": 1,
-          "nama": "Dapur Mama INA",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.28802769,
-            112.7665698
-          ]
-        },
-        {
-          "order": 2,
-          "nama": "UD Syafrida Snack, PO",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.2823585,
-            112.7649261
-          ]
-        },
-        {
-          "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Kedai Tuan Roemah",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.263176,
+            112.753382
           ]
         },
         {
-          "order": 4,
+          "order": 2,
           "nama": "Pisang Meler Airlangga 2",
           "kategori": [
             "makanan_ringan"
@@ -157,96 +136,97 @@
           ]
         },
         {
+          "order": 3,
+          "nama": "Pasar Bunga Kayoon",
+          "kategori": [
+            "oleh_oleh",
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.268888,
+            112.747916
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Nasi Pecel dan Penyetan Mas Sugik",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.274348,
+            112.732789
+          ]
+        },
+        {
           "order": 5,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "nama": "Visma Art & Design Gallery",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.265988,
+            112.738307
           ]
         },
         {
           "order": 6,
-          "nama": "Balai Kota Surabaya",
+          "nama": "Siomay AMA",
           "kategori": [
-            "non_kuliner"
+            "makanan_ringan"
           ],
           "coordinates": [
-            -7.259445,
-            112.746996
+            -7.259327232,
+            112.7237825
           ]
         },
         {
           "order": 7,
-          "nama": "Pasar Genteng Baru",
+          "nama": "Rawon Abah Pangat",
           "kategori": [
-            "all"
+            "makanan_berat"
           ],
           "coordinates": [
-            -7.258516471,
-            112.7407339
+            -7.255221556,
+            112.7351434
           ]
         },
         {
           "order": 8,
-          "nama": "Museum Surabaya",
+          "nama": "Surabaya Kriya Gallery (SKG) SIOLA",
           "kategori": [
-            "non_kuliner"
+            "oleh_oleh"
           ],
           "coordinates": [
-            -7.2561991,
-            112.7378506
+            -7.2562015,
+            112.7374846
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 2
     },
     {
       "start_point": [
-        -7.258580555479273,
-        112.78133495120701
+        -7.2575,
+        112.7521
       ],
       "total_destinations": 8,
-      "total_distance_km": 8.91,
+      "total_distance_km": 29.13,
       "destinations": [
         {
           "order": 1,
-          "nama": "Dapur Mama INA",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.28802769,
-            112.7665698
-          ]
-        },
-        {
-          "order": 2,
-          "nama": "UD Syafrida Snack, PO",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.2823585,
-            112.7649261
-          ]
-        },
-        {
-          "order": 3,
-          "nama": "Nasi Goreng dan Sundukan",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2793805,
-            112.7611722
+            -7.276346,
+            112.755779
           ]
         },
         {
-          "order": 4,
+          "order": 2,
           "nama": "Pisang Meler Airlangga 2",
           "kategori": [
             "makanan_ringan"
@@ -257,51 +237,74 @@
           ]
         },
         {
-          "order": 5,
-          "nama": "UYCC (Unicorn Young Collectors Club) Art Gallery",
+          "order": 3,
+          "nama": "Masjid Agung Sunan Ampel",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.2680621,
-            112.7477999
+            -7.230335,
+            112.742906
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Nasi Pecel dan Penyetan Mas Sugik",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.274348,
+            112.732789
+          ]
+        },
+        {
+          "order": 5,
+          "nama": "Museum Resolusi Jihad",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.250181,
+            112.737188
           ]
         },
         {
           "order": 6,
-          "nama": "Balai Kota Surabaya",
+          "nama": "Waroeng Soerabi Bandoeng Surabaya",
           "kategori": [
-            "non_kuliner"
+            "makanan_ringan"
           ],
           "coordinates": [
-            -7.259445,
-            112.746996
+            -7.264279454,
+            112.7955793
           ]
         },
         {
           "order": 7,
-          "nama": "Pasar Genteng Baru",
+          "nama": "Warung Bu Minati",
           "kategori": [
-            "all"
+            "makanan_berat"
           ],
           "coordinates": [
-            -7.258516471,
-            112.7407339
+            -7.286154,
+            112.786137
           ]
         },
         {
           "order": 8,
-          "nama": "Museum Surabaya",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
+            "oleh_oleh",
             "non_kuliner"
           ],
           "coordinates": [
-            -7.2561991,
-            112.7378506
+            -7.268888,
+            112.747916
           ]
         }
       ],
-      "is_valid_order": false,
+      "is_valid_order": true,
       "rank": 3
     }
   ]

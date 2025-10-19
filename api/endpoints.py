@@ -1,27 +1,26 @@
 import os
 import uuid
 from fastapi import APIRouter, HTTPException, Request
-from ..system import TourismRouteRecommendationSystem
+from system import TourismRouteRecommendationSystem
 from visualization.map_plotter import RouteMapPlotter
 from visualization.convergence_plotter import ConvergencePlotter
-from schemas import RouteRequest, RecommendationResponse
-from config import OUTPUT_DIR # Ambil path dari config
+from api.schemas import RouteRequest, RecommendationResponse
+from api.config import OUTPUT_DIR # Ambil path dari config
+from datetime import datetime
 
 router = APIRouter()
-
 @router.post("/generate-routes", response_model=RecommendationResponse)
 async def generate_routes(request_data: RouteRequest, http_request: Request):
     """
     Menghasilkan rekomendasi rute wisata berdasarkan lokasi pengguna dan parameter HGA.
     """
     
-    # 1. Dapatkan sistem rekomendasi dari state aplikasi
-    # 'http_request.app.state.recommendation_system' di-set saat startup
+    # 1. Dapatkan sistem
     system: TourismRouteRecommendationSystem = http_request.app.state.recommendation_system
     if not system:
-        raise HTTPException(status_code=503, detail="Sistem belum siap. Coba beberapa saat lagi.")
+        raise HTTPException(status_code=503, detail="Sistem belum siap.")
     
-    # 2. Inisialisasi HGA dengan parameter dari request
+    # 2. Inisialisasi HGA
     try:
         system.initialize_hga(
             population_size=request_data.population_size,
@@ -30,12 +29,11 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
             mutation_rate=request_data.mutation_rate
         )
     except ValueError as e:
-        # Tangkap error jika data destinasi tidak cukup
         raise HTTPException(status_code=400, detail=str(e))
     
     user_location = (request_data.latitude, request_data.longitude)
     
-    # 3. Jalankan HGA (Proses intensif)
+    # 3. Jalankan HGA
     print(f"Menjalankan HGA untuk user di {user_location}...")
     try:
         recommendations = system.get_route_recommendations(
@@ -49,67 +47,117 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
     print("HGA selesai.")
     
     # 4. Dapatkan statistik
-    stats = system.hga.get_evolution_statistics()
+    # stats_raw berisi 'best_solution' yang tidak serializable
+    stats_raw = system.hga.get_evolution_statistics()
     
     # 5. Buat visualisasi
-    run_id = str(uuid.uuid4())[:8]  # ID unik untuk nama file
+    run_id = str(uuid.uuid4())[:8]
     base_url = str(http_request.base_url)
     vis_urls = {}
-
-    # --- 5a. Buat Peta Rute Terbaik ---
+    
+    map_plotter = RouteMapPlotter(center_location=user_location, use_real_routes=True)
+    
+    # --- 5a. Peta Rute Terbaik ---
     if recommendations and system.hga.best_solution:
         try:
             print("Membuat peta rute terbaik...")
-            map_plotter = RouteMapPlotter(center_location=user_location, use_real_routes=True)
             best_route_genes = system.hga.best_solution.genes
-            
-            map_filename = f"map_rute_terbaik_{run_id}.html"
+            map_filename = f"best_route_{datetime.now().isoformat()}.html"
             map_filepath = os.path.join(OUTPUT_DIR, map_filename)
-            
-            map_plotter.create_route_map(
+            best_map = map_plotter.create_route_map(
                 start_point=user_location,
                 destinations=best_route_genes
             )
-            map_plotter.save_map(map_filepath)
-            
-            # URL statis: {base_url}/static/{nama_file}
+            map_plotter.save_map(map_filepath) 
             vis_urls["best_route_map"] = f"{base_url}static/{map_filename}"
-            print(f"Peta disimpan: {map_filepath}")
-
         except Exception as e:
-            print(f"Error saat membuat peta: {e}")
+            print(f"Error saat membuat peta terbaik: {e}")
             vis_urls["best_route_map"] = f"Error: {e}"
 
-    # --- 5b. Buat Plot Konvergensi ---
-    try:
-        print("Membuat plot konvergensi...")
-        plotter = ConvergencePlotter(output_dir=OUTPUT_DIR)
-        plot_filename = f"plot_konvergensi_{run_id}.png"
-        
-        plot_path = plotter.plot_fitness_evolution(
-            stats['best_fitness_history'], 
-            stats['average_fitness_history'],
-            filename=plot_filename
-        )
-        
-        if plot_path:
-            vis_urls["convergence_plot"] = f"{base_url}static/{plot_filename}"
-            print(f"Plot disimpan: {plot_path}")
-        else:
-            vis_urls["convergence_plot"] = "Tidak ada data untuk di-plot."
+    # --- 5b. Peta Semua Rute ---
+    if recommendations and hasattr(system.hga, 'final_population'):
+        try:
+            print(f"Membuat peta {request_data.num_routes} rute terbaik...")
+            top_solutions = system.hga.final_population.get_best_n_chromosomes(request_data.num_routes)
+            routes_data = []
+            colors = ['blue', 'red', 'green', 'purple', 'orange']
+            for i, sol in enumerate(top_solutions):
+                routes_data.append({
+                    'destinations': sol.genes,
+                    'name': f'Rute #{i+1} ({sol.get_total_distance():.2f} km)',
+                    'color': colors[i % len(colors)]
+                })
             
+            multi_map = map_plotter.create_multiple_routes_map(
+                start_point=user_location,
+                routes_data=routes_data
+            )
+            multi_map = map_plotter.add_legend(multi_map)
+            all_map_filename = f"all_routes_{datetime.now().isoformat()}.html"
+            all_map_filepath = os.path.join(OUTPUT_DIR, all_map_filename)
+            multi_map.save(all_map_filepath)
+            vis_urls["all_routes_map"] = f"{base_url}static/{all_map_filename}"
+        except Exception as e:
+            print(f"Error saat membuat peta semua rute: {e}")
+            vis_urls["all_routes_map"] = f"Error: {e}"
+
+    # --- 5c. Buat SEMUA Plot Konvergensi ---
+    try:
+        print("Membuat semua plot statistik...")
+        plotter = ConvergencePlotter(output_dir=OUTPUT_DIR)
+        
+        # Plot 1: Fitness Evolution
+        plot_fitness_filename = f"fitness_evolution_{datetime.now().isoformat()}.png"
+        plot_fitness_path = plotter.plot_fitness_evolution(
+            stats_raw['best_fitness_history'], 
+            stats_raw['average_fitness_history'],
+            filename=plot_fitness_filename
+        )
+        if plot_fitness_path:
+            vis_urls["fitness_evolution_plot"] = f"{base_url}static/{plot_fitness_filename}"
+        
+        # Plot 2: Distance Evolution
+        plot_distance_filename = f"distance_evolution_{datetime.now().isoformat()}.png"
+        plot_distance_path = plotter.plot_distance_evolution(
+            stats_raw['best_fitness_history'], 
+            stats_raw['average_fitness_history'],
+            filename=plot_distance_filename
+        )
+        if plot_distance_path:
+            vis_urls["distance_evolution_plot"] = f"{base_url}static/{plot_distance_filename}"
+
+        # Plot 3: Statistics Summary
+        plot_stats_filename = f"statistics_summary_{datetime.now().isoformat()}.png"
+        plot_stats_path = plotter.plot_statistics_summary(
+            stats_raw, # Kirim semua statistik mentah
+            filename=plot_stats_filename
+        )
+        if plot_stats_path:
+            vis_urls["statistics_summary_plot"] = f"{base_url}static/{plot_stats_filename}"
+
+        # Plot 4: Convergence Analysis (Improvement Rate)
+        plot_analysis_filename = f"convergence_analysis_{datetime.now().isoformat()}.png"
+        plot_analysis_path = plotter.plot_convergence_analysis(
+            stats_raw['best_fitness_history'],
+            filename=plot_analysis_filename
+        )
+        if plot_analysis_path:
+            vis_urls["convergence_analysis_plot"] = f"{base_url}static/{plot_analysis_filename}"
+        # --- SELESAI TAMBAHAN ---
+
     except Exception as e:
         print(f"Error saat membuat plot: {e}")
-        vis_urls["convergence_plot"] = f"Error: {e}"
+        vis_urls["plots_error"] = f"Error: {e}"
 
-    # 6. Bersihkan statistik (hapus objek yg tidak serializable)
-    stats.pop('best_solution', None)
+    # 6. Bersihkan statistik
+    stats_clean = stats_raw.copy()
+    stats_clean.pop('best_solution', None)
     
     # 7. Kembalikan respons
     return RecommendationResponse(
         message="Rekomendasi rute berhasil dibuat.",
         user_location=user_location,
         recommendations=recommendations,
-        statistics=stats,
+        statistics=stats_clean, 
         visualization_urls=vis_urls
     )
