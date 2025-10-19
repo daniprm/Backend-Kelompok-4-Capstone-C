@@ -12,7 +12,9 @@
 folium>=0.12.0        # Untuk visualisasi peta interaktif
 matplotlib>=3.3.0     # Untuk grafik konvergensi
 requests>=2.25.0      # Untuk routing API (rute jalan nyata)
-
+fastapi==0.119.0
+pydantic==2.11.5
+pydantic_core==2.33.2
 # Optional untuk pengembangan:
 # numpy>=1.19.0  # Untuk operasi numerik yang lebih cepat
 # pandas>=1.1.0  # Untuk analisis data yang lebih mudah

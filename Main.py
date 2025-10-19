@@ -263,8 +263,26 @@ def main():
     print(f"{'='*70}")
     print("\n[INFO] Buka file HTML untuk melihat peta interaktif di browser!")
     print(f"{'='*70}")
-
-
+    
+import uvicorn
+def run_api():
+    print("Menjalankan server Uvicorn di http://127.0.0.1:8000")
+    print("Folder data: ", os.path.abspath("data"))
+    print("Folder output: ", os.path.abspath("api_outputs"))
+    print("Cek dokumentasi interaktif di http://127.0.0.1:8000/docs")
+    
+    # Menjalankan aplikasi dari dalam paket
+    # "halal_route_optimizer.api.main:app" menunjuk ke file main.py di dalam api,
+    # dan variabel 'app' di dalamnya.
+    uvicorn.run(
+        "halal_route_optimizer.api.main:app", 
+        host="127.0.0.1", 
+        port=8000, 
+        reload=True,
+        # reload_dirs=["halal_route_optimizer"] # Aktifkan jika Anda ingin auto-reload
+    )
+    
 
 if __name__ == "__main__":
-    main()
+    # main()
+    run_api()
