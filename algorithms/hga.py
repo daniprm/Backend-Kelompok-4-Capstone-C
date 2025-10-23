@@ -233,7 +233,7 @@ class HybridGeneticAlgorithm:
         return Population(chromosomes=new_chromosomes, population_size=self.population_size)
     
     # TODO: Pengatur konvergensi
-    def _check_convergence(self, generation: int, patience: int = 2500) -> bool:
+    def _check_convergence(self, generation: int, patience: int = 1500) -> bool:
         """
         Mengecek apakah algoritma sudah konvergen
         

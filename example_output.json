@@ -1,7 +1,7 @@
 {
   "user_location": [
-    -7.256459823665688,
-    112.77937118200266
+    -7.281556387525207,
+    112.79571404156289
   ],
   "hga_config": {
     "population_size": 50,
@@ -13,43 +13,43 @@
   "solutions": [
     {
       "start_point": [
-        -7.256459823665688,
-        112.77937118200266
+        -7.281556387525207,
+        112.79571404156289
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 8.29,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Yeni",
+          "nama": "Warung Bu Minati",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2520724,
-            112.7687264
+            -7.286154,
+            112.786137
           ]
         },
         {
           "order": 2,
-          "nama": "JEVRE Drink",
+          "nama": "Dapur Bu Erna",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.253048,
-            112.761308
+            -7.2767233,
+            112.7649315
           ]
         },
         {
           "order": 3,
-          "nama": "Gelora 10 Nopember",
+          "nama": "Museum Etnografi",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.251844,
-            112.756287
+            -7.272492,
+            112.757315
           ]
         },
         {
@@ -65,13 +65,14 @@
         },
         {
           "order": 5,
-          "nama": "Museum Etnografi",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
+            "oleh_oleh",
             "non_kuliner"
           ],
           "coordinates": [
-            -7.272492,
-            112.757315
+            -7.268888,
+            112.747916
           ]
         },
         {
@@ -87,13 +88,13 @@
         },
         {
           "order": 7,
-          "nama": "Sate Asin Garuda",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.280941,
-            112.746563
+            -7.276346,
+            112.755779
           ]
         },
         {
@@ -110,47 +111,47 @@
       ],
       "is_valid_order": true,
       "rank": 1,
-      "fitness": 0.1403832744194694
+      "fitness": 0.1205825981242193
     },
     {
       "start_point": [
-        -7.256459823665688,
-        112.77937118200266
+        -7.281556387525207,
+        112.79571404156289
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 8.29,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Yeni",
+          "nama": "Warung Bu Minati",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2520724,
-            112.7687264
+            -7.286154,
+            112.786137
           ]
         },
         {
           "order": 2,
-          "nama": "JEVRE Drink",
+          "nama": "Dapur Bu Erna",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.253048,
-            112.761308
+            -7.2767233,
+            112.7649315
           ]
         },
         {
           "order": 3,
-          "nama": "Gelora 10 Nopember",
+          "nama": "Museum Etnografi",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.251844,
-            112.756287
+            -7.272492,
+            112.757315
           ]
         },
         {
@@ -166,13 +167,14 @@
         },
         {
           "order": 5,
-          "nama": "Museum Etnografi",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
+            "oleh_oleh",
             "non_kuliner"
           ],
           "coordinates": [
-            -7.272492,
-            112.757315
+            -7.268888,
+            112.747916
           ]
         },
         {
@@ -188,13 +190,13 @@
         },
         {
           "order": 7,
-          "nama": "Sate Asin Garuda",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.280941,
-            112.746563
+            -7.276346,
+            112.755779
           ]
         },
         {
@@ -211,47 +213,47 @@
       ],
       "is_valid_order": true,
       "rank": 2,
-      "fitness": 0.1403832744194694
+      "fitness": 0.1205825981242193
     },
     {
       "start_point": [
-        -7.256459823665688,
-        112.77937118200266
+        -7.281556387525207,
+        112.79571404156289
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 8.29,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Yeni",
+          "nama": "Warung Bu Minati",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2520724,
-            112.7687264
+            -7.286154,
+            112.786137
           ]
         },
         {
           "order": 2,
-          "nama": "JEVRE Drink",
+          "nama": "Dapur Bu Erna",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.253048,
-            112.761308
+            -7.2767233,
+            112.7649315
           ]
         },
         {
           "order": 3,
-          "nama": "Gelora 10 Nopember",
+          "nama": "Museum Etnografi",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.251844,
-            112.756287
+            -7.272492,
+            112.757315
           ]
         },
         {
@@ -267,13 +269,14 @@
         },
         {
           "order": 5,
-          "nama": "Museum Etnografi",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
+            "oleh_oleh",
             "non_kuliner"
           ],
           "coordinates": [
-            -7.272492,
-            112.757315
+            -7.268888,
+            112.747916
           ]
         },
         {
@@ -289,13 +292,13 @@
         },
         {
           "order": 7,
-          "nama": "Sate Asin Garuda",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.280941,
-            112.746563
+            -7.276346,
+            112.755779
           ]
         },
         {
@@ -312,7 +315,7 @@
       ],
       "is_valid_order": true,
       "rank": 3,
-      "fitness": 0.1403832744194694
+      "fitness": 0.1205825981242193
     }
   ]
 }
