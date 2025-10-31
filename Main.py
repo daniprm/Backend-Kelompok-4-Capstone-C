@@ -38,7 +38,7 @@ class TourismRouteRecommendationSystem:
         
     def initialize_hga(self, 
                       population_size: int = 70,
-                      generations: int = 10000,
+                      generations: int = 5000,
                       crossover_rate: float = 0.8,
                       mutation_rate: float = 0.1):
         """
