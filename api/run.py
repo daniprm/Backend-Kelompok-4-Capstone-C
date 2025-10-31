@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 # Impor dari modul lokal
 from system import TourismRouteRecommendationSystem
@@ -48,17 +49,36 @@ app = FastAPI(
     lifespan=lifespan  # Gunakan fungsi lifespan di atas
 )
 
-# 1. Mount direktori statis
+# 1. Konfigurasi CORS untuk Next.js
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js default port
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        # Tambahkan domain production di sini jika sudah deploy
+        # "https://yourdomain.com"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Izinkan semua HTTP methods (GET, POST, dll)
+    allow_headers=["*"],  # Izinkan semua headers
+)
+
+# 2. Mount direktori statis
 # Ini membuat folder 'api_outputs' dapat diakses publik melalui URL '/static'
 app.mount("/static", StaticFiles(directory=OUTPUT_DIR), name="static")
 
-# 2. Masukkan router dari endpoints.py
+# 3. Masukkan router dari endpoints.py
 app.include_router(api_router)
 
-# 3. Endpoint root sederhana
+# 4. Endpoint root sederhana
 @app.get("/", include_in_schema=False)
 def root():
     return {
         "message": "Selamat datang di API Optimasi Rute Wisata HGA.",
-        "docs": "/docs"
+        "docs": "/docs",
+        "endpoints": {
+            "generate_routes": "/generate-routes (POST)"
+        }
     }

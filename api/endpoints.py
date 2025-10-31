@@ -2,17 +2,36 @@ import os
 import uuid
 from fastapi import APIRouter, HTTPException, Request
 from system import TourismRouteRecommendationSystem
-from visualization.map_plotter import RouteMapPlotter
-from visualization.convergence_plotter import ConvergencePlotter
+# Import visualisasi di-comment karena tidak digunakan
+# from visualization.map_plotter import RouteMapPlotter
+# from visualization.convergence_plotter import ConvergencePlotter
 from api.schemas import RouteRequest, RecommendationResponse
-from api.config import OUTPUT_DIR # Ambil path dari config
-from datetime import datetime
+from api.config import (
+    DEFAULT_POPULATION_SIZE,
+    DEFAULT_GENERATIONS,
+    DEFAULT_CROSSOVER_RATE,
+    DEFAULT_MUTATION_RATE,
+    DEFAULT_NUM_ROUTES
+)
+# from api.config import OUTPUT_DIR # Tidak diperlukan jika visualisasi dinonaktifkan
+# from datetime import datetime # Tidak diperlukan jika visualisasi dinonaktifkan
 
 router = APIRouter()
 @router.post("/generate-routes", response_model=RecommendationResponse)
 async def generate_routes(request_data: RouteRequest, http_request: Request):
     """
-    Menghasilkan rekomendasi rute wisata berdasarkan lokasi pengguna dan parameter HGA.
+    Menghasilkan rekomendasi rute wisata berdasarkan lokasi pengguna.
+    
+    Request body hanya memerlukan:
+    - latitude: Latitude lokasi pengguna
+    - longitude: Longitude lokasi pengguna
+    
+    Parameter HGA dan jumlah rute dikonfigurasi secara otomatis di API:
+    - population_size: 100
+    - generations: 5000
+    - crossover_rate: 0.8
+    - mutation_rate: 0.1
+    - num_routes: 3
     """
     
     # 1. Dapatkan sistem
@@ -20,14 +39,15 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
     if not system:
         raise HTTPException(status_code=503, detail="Sistem belum siap.")
     
-    # 2. Inisialisasi HGA
+    # 2. Inisialisasi HGA dengan konfigurasi default
     try:
         system.initialize_hga(
-            population_size=request_data.population_size,
-            generations=request_data.generations,
-            crossover_rate=request_data.crossover_rate,
-            mutation_rate=request_data.mutation_rate
+            population_size=DEFAULT_POPULATION_SIZE,
+            generations=DEFAULT_GENERATIONS,
+            crossover_rate=DEFAULT_CROSSOVER_RATE,
+            mutation_rate=DEFAULT_MUTATION_RATE
         )
+        print(f"HGA diinisialisasi dengan: population={DEFAULT_POPULATION_SIZE}, generations={DEFAULT_GENERATIONS}")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -38,7 +58,7 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
     try:
         recommendations = system.get_route_recommendations(
             user_location=user_location,
-            num_routes=request_data.num_routes
+            num_routes=DEFAULT_NUM_ROUTES
         )
     except Exception as e:
         print(f"Error saat menjalankan HGA: {e}")
@@ -46,8 +66,11 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
 
     print("HGA selesai.")
     
+    # Visualisasi dinonaktifkan - tidak diperlukan di output
+    # Jika diperlukan visualisasi, uncomment kode di bawah ini
+    
+    """
     # 4. Dapatkan statistik
-    # stats_raw berisi 'best_solution' yang tidak serializable
     stats_raw = system.hga.get_evolution_statistics()
     
     # 5. Buat visualisasi
@@ -148,16 +171,11 @@ async def generate_routes(request_data: RouteRequest, http_request: Request):
     except Exception as e:
         print(f"Error saat membuat plot: {e}")
         vis_urls["plots_error"] = f"Error: {e}"
-
-    # 6. Bersihkan statistik
-    stats_clean = stats_raw.copy()
-    stats_clean.pop('best_solution', None)
+    """
     
-    # 7. Kembalikan respons
+    # 6. Kembalikan respons (tanpa statistics dan visualization_urls)
     return RecommendationResponse(
         message="Rekomendasi rute berhasil dibuat.",
         user_location=user_location,
-        recommendations=recommendations,
-        statistics=stats_clean, 
-        visualization_urls=vis_urls
+        recommendations=recommendations
     )

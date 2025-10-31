@@ -17,17 +17,17 @@
         112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 8.85,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Yeni",
+          "nama": "Smesta Cafe",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2520724,
-            112.7687264
+            -7.259099,
+            112.783271
           ]
         },
         {
@@ -43,13 +43,13 @@
         },
         {
           "order": 3,
-          "nama": "Gelora 10 Nopember",
+          "nama": "Surabaya Sightseeing & City Tour Bus (SSCT)",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.251844,
-            112.756287
+            -7.2640551,
+            112.7453148
           ]
         },
         {
@@ -76,41 +76,42 @@
         },
         {
           "order": 6,
-          "nama": "Sang Mboizz",
+          "nama": "Pisang Meler Airlangga 2",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.2751227,
-            112.75597
+            -7.272311,
+            112.7561819
           ]
         },
         {
           "order": 7,
-          "nama": "Sate Asin Garuda",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.280941,
-            112.746563
+            -7.276346,
+            112.755779
           ]
         },
         {
           "order": 8,
-          "nama": "Mirota Batik & Handicraft",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
-            "oleh_oleh"
+            "oleh_oleh",
+            "non_kuliner"
           ],
           "coordinates": [
-            -7.276708517,
-            112.7473842
+            -7.268888,
+            112.747916
           ]
         }
       ],
       "is_valid_order": true,
       "rank": 1,
-      "fitness": 0.1403832744194694
+      "fitness": 0.11305054989350347
     },
     {
       "start_point": [
@@ -118,10 +119,76 @@
         112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 31.75,
       "destinations": [
         {
           "order": 1,
+          "nama": "Depot Terasa Nikmat",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.276346,
+            112.755779
+          ]
+        },
+        {
+          "order": 2,
+          "nama": "Es Kacang ijo Man Men",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.266097,
+            112.728481
+          ]
+        },
+        {
+          "order": 3,
+          "nama": "Rumah Lahir Bung Karno",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.250899,
+            112.74056
+          ]
+        },
+        {
+          "order": 4,
+          "nama": "Depot Bu Rudy Dharmahusada",
+          "kategori": [
+            "makanan_berat"
+          ],
+          "coordinates": [
+            -7.267151383,
+            112.7701755
+          ]
+        },
+        {
+          "order": 5,
+          "nama": "De Javasche Bank (Museum Bank Indonesia)",
+          "kategori": [
+            "non_kuliner"
+          ],
+          "coordinates": [
+            -7.235292,
+            112.73672
+          ]
+        },
+        {
+          "order": 6,
+          "nama": "Waroeng Soerabi Bandoeng Surabaya",
+          "kategori": [
+            "makanan_ringan"
+          ],
+          "coordinates": [
+            -7.264279454,
+            112.7955793
+          ]
+        },
+        {
+          "order": 7,
           "nama": "Warung Bu Yeni",
           "kategori": [
             "makanan_berat"
@@ -129,72 +196,6 @@
           "coordinates": [
             -7.2520724,
             112.7687264
-          ]
-        },
-        {
-          "order": 2,
-          "nama": "JEVRE Drink",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.253048,
-            112.761308
-          ]
-        },
-        {
-          "order": 3,
-          "nama": "Gelora 10 Nopember",
-          "kategori": [
-            "non_kuliner"
-          ],
-          "coordinates": [
-            -7.251844,
-            112.756287
-          ]
-        },
-        {
-          "order": 4,
-          "nama": "POIN STEAK",
-          "kategori": [
-            "makanan_berat"
-          ],
-          "coordinates": [
-            -7.2720872,
-            112.7587061
-          ]
-        },
-        {
-          "order": 5,
-          "nama": "Museum Etnografi",
-          "kategori": [
-            "non_kuliner"
-          ],
-          "coordinates": [
-            -7.272492,
-            112.757315
-          ]
-        },
-        {
-          "order": 6,
-          "nama": "Sang Mboizz",
-          "kategori": [
-            "makanan_ringan"
-          ],
-          "coordinates": [
-            -7.2751227,
-            112.75597
-          ]
-        },
-        {
-          "order": 7,
-          "nama": "Sate Asin Garuda",
-          "kategori": [
-            "makanan_berat"
-          ],
-          "coordinates": [
-            -7.280941,
-            112.746563
           ]
         },
         {
@@ -211,7 +212,7 @@
       ],
       "is_valid_order": true,
       "rank": 2,
-      "fitness": 0.1403832744194694
+      "fitness": 0.03149226040319523
     },
     {
       "start_point": [
@@ -219,100 +220,101 @@
         112.77937118200266
       ],
       "total_destinations": 8,
-      "total_distance_km": 7.12,
+      "total_distance_km": 34.34,
       "destinations": [
         {
           "order": 1,
-          "nama": "Warung Bu Yeni",
+          "nama": "Depot Terasa Nikmat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2520724,
-            112.7687264
+            -7.276346,
+            112.755779
           ]
         },
         {
           "order": 2,
-          "nama": "JEVRE Drink",
+          "nama": "Es Kacang ijo Man Men",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.253048,
-            112.761308
+            -7.266097,
+            112.728481
           ]
         },
         {
           "order": 3,
-          "nama": "Gelora 10 Nopember",
+          "nama": "Pasar Bunga Kayoon",
           "kategori": [
+            "oleh_oleh",
             "non_kuliner"
           ],
           "coordinates": [
-            -7.251844,
-            112.756287
+            -7.268888,
+            112.747916
           ]
         },
         {
           "order": 4,
-          "nama": "POIN STEAK",
+          "nama": "Penyetan Cak Lan",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.2720872,
-            112.7587061
+            -7.2969133,
+            112.8002236
           ]
         },
         {
           "order": 5,
-          "nama": "Museum Etnografi",
+          "nama": "Monumen Kapal Selam",
           "kategori": [
             "non_kuliner"
           ],
           "coordinates": [
-            -7.272492,
-            112.757315
+            -7.26543,
+            112.750305
           ]
         },
         {
           "order": 6,
-          "nama": "Sang Mboizz",
+          "nama": "Waroeng Soerabi Bandoeng Surabaya",
           "kategori": [
             "makanan_ringan"
           ],
           "coordinates": [
-            -7.2751227,
-            112.75597
+            -7.264279454,
+            112.7955793
           ]
         },
         {
           "order": 7,
-          "nama": "Sate Asin Garuda",
+          "nama": "Tahu Telor Pak Jayen Pusat",
           "kategori": [
             "makanan_berat"
           ],
           "coordinates": [
-            -7.280941,
-            112.746563
+            -7.268097,
+            112.774744
           ]
         },
         {
           "order": 8,
-          "nama": "Mirota Batik & Handicraft",
+          "nama": "Pasar Turi Baru",
           "kategori": [
-            "oleh_oleh"
+            "all"
           ],
           "coordinates": [
-            -7.276708517,
-            112.7473842
+            -7.245065629,
+            112.7345134
           ]
         }
       ],
-      "is_valid_order": true,
+      "is_valid_order": false,
       "rank": 3,
-      "fitness": 0.1403832744194694
+      "fitness": 0.029121954466795143
     }
   ]
 }

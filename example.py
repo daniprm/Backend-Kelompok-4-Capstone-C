@@ -36,10 +36,11 @@ def run_example():
         generations=5000,         # Generasi lebih sedikit untuk testing
         crossover_rate=0.8,
         mutation_rate=0.1,
-        elitism_count=3,
+        elitism_count=1,
         tournament_size=10,
         use_2opt=True,
-        two_opt_iterations=1000
+        two_opt_iterations=1000,
+        use_real_routing=True
     )
     print("   [OK] HGA berhasil diinisialisasi\n")
     
