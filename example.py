@@ -5,10 +5,7 @@ Untuk testing dan demonstrasi tanpa input interaktif
 from algorithms.hga import HybridGeneticAlgorithm
 from utils.data_loader import load_destinations_from_csv
 from models.route import Route
-from visualization.map_plotter import RouteMapPlotter
-from visualization.convergence_plotter import ConvergencePlotter
 import json
-import os
 
 def run_example():
     """
@@ -128,61 +125,11 @@ def run_example():
                    / stats['best_fitness_history'][0] * 100)
     print(f"   Improvement         : {improvement:.2f}%")
     
-    # 8. VISUALISASI - Buat grafik konvergensi
-    print(f"\n8. Membuat Visualisasi Grafik Konvergensi...")
-    print(f"{'-'*70}")
-    
-    # Buat directory untuk output visualisasi
-    os.makedirs('visualization/outputs', exist_ok=True)
-    
-    # Plot grafik konvergensi
-    plotter = ConvergencePlotter(output_dir='visualization/outputs')
-    graph_files = plotter.create_all_plots(stats)
-    
-    # 9. VISUALISASI - Buat peta rute
-    print(f"\n9. Membuat Visualisasi Peta Rute...")
-    print(f"{'-'*70}")
-    
-    # Inisialisasi map plotter dengan real routes enabled
-    map_plotter = RouteMapPlotter(center_location=user_location, use_real_routes=True)
-    
-    # Buat peta untuk rute terbaik
-    print(f"\n  Membuat peta rute terbaik dengan routing API...")
-    best_route = best_solutions[0]
-    route_map = map_plotter.create_route_map(
-        start_point=user_location,
-        destinations=best_route.genes,
-        route_name=f"Rute Terbaik - {best_route.get_total_distance():.2f} km"
-    )
-    map_plotter.save_map('visualization/outputs/best_route_map.html')
-    
-    # Buat peta dengan semua 3 rute
-    print(f"\n  Membuat peta semua rute dengan routing API...")
-    routes_data = []
-    colors = ['blue', 'red', 'green']
-    for i, sol in enumerate(best_solutions[:3]):
-        routes_data.append({
-            'destinations': sol.genes,
-            'name': f'Rute #{i+1} ({sol.get_total_distance():.2f} km)',
-            'color': colors[i]
-        })
-    
-    multi_map = map_plotter.create_multiple_routes_map(
-        start_point=user_location,
-        routes_data=routes_data
-    )
-    multi_map = map_plotter.add_legend(multi_map)
-    multi_map.save('visualization/outputs/all_routes_map.html')
-    print(f"\n   [OK] Peta semua rute disimpan ke: visualization/outputs/all_routes_map.html")
-    
     print(f"\n{'='*70}")
     print(" SELESAI - Sistem berhasil menemukan rute optimal!")
     print("="*70)
     print(f"\nOutput yang dihasilkan:")
-    print(f"  1. JSON          : example_output.json")
-    print(f"  2. Peta Terbaik  : visualization/outputs/best_route_map.html")
-    print(f"  3. Peta Semua    : visualization/outputs/all_routes_map.html")
-    print(f"  4. Grafik        : visualization/outputs/*.png (4 file)")
+    print(f"  JSON: example_output.json")
     print(f"{'='*70}")
 
 
