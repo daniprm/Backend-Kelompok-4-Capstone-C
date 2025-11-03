@@ -13,7 +13,7 @@ class TourismRouteRecommendationSystem:
     Sistem Rekomendasi Rute Wisata menggunakan HGA
     """
     
-    def __init__(self, data_file: str = "./data/data_wisata_sby.csv"):
+    def __init__(self, data_file: str = "./data/data_wisata_sby2.csv"):
         """
         Inisialisasi sistem
         
@@ -34,10 +34,10 @@ class TourismRouteRecommendationSystem:
         print(self.destinations[0])
         
     def initialize_hga(self, 
-                      population_size: int = 70,
-                      generations: int = 5000,
-                      crossover_rate: float = 0.8,
-                      mutation_rate: float = 0.1):
+                      population_size,
+                      generations,
+                      crossover_rate,
+                      mutation_rate):
         """
         Inisialisasi Hybrid Genetic Algorithm
         
@@ -81,8 +81,6 @@ class TourismRouteRecommendationSystem:
         best_chromosomes = self.hga.run(
             destinations=self.destinations,
             start_point=user_location,
-            # TODO: End point adalah destinasi terakhir, bukan lokasi user
-            # end_point=user_location,
             num_solutions=num_routes
         )
         
@@ -134,7 +132,7 @@ def main():
     print()
     
     # Inisialisasi sistem
-    system = TourismRouteRecommendationSystem("./data/data_wisata_sby.csv")
+    system = TourismRouteRecommendationSystem("./data/data_wisata_sby2.csv")
     
     # Load data
     system.load_data()
@@ -154,11 +152,11 @@ def main():
     print(f"\nLokasi Anda: {user_location}")
     print()
     
-    # Konfigurasi HGA
+    # Konfigurasi HGA Final
     print("Konfigurasi HGA:")
     system.initialize_hga(
         population_size=70,
-        generations=10000,
+        generations=3000,
         crossover_rate=0.8,
         mutation_rate=0.1
     )

@@ -12,7 +12,20 @@ from datetime import datetime
 
 from algorithms.hga import HybridGeneticAlgorithm
 from utils.data_loader import load_destinations_from_csv
+from utils.distance import get_osrm_cache_stats, clear_osrm_cache, set_use_osrm, set_osrm_profile
 from models.route import Route
+
+# Default HGA Configuration (sesuai dengan Main.py)
+DEFAULT_HGA_CONFIG = {
+    "population_size": 600,
+    "generations": 40,
+    "crossover_rate": 0.8,
+    "mutation_rate": 0.05,
+    "elitism_count": 2,
+    "tournament_size": 8,
+    "use_2opt": True,
+    "two_opt_iterations": 100
+}
 
 # Global variables untuk cache
 destinations = None
@@ -23,7 +36,7 @@ def initialize_system():
     global destinations
     if destinations is None:
         print("Loading destinations data...")
-        destinations = load_destinations_from_csv("./data/data_wisata_sby.csv")
+        destinations = load_destinations_from_csv("./data/data_wisata_sby2.csv")
         print(f"Successfully loaded {len(destinations)} destinations")
 
 @asynccontextmanager
@@ -69,10 +82,52 @@ class LocationRequest(BaseModel):
     }
 
 class HGAConfig(BaseModel):
-    population_size: Optional[int] = Field(70, description="Ukuran populasi", ge=10, le=200)
-    generations: Optional[int] = Field(5000, description="Jumlah generasi", ge=100, le=20000)
-    crossover_rate: Optional[float] = Field(0.8, description="Probabilitas crossover", ge=0.0, le=1.0)
-    mutation_rate: Optional[float] = Field(0.1, description="Probabilitas mutasi", ge=0.0, le=1.0)
+    population_size: Optional[int] = Field(
+        DEFAULT_HGA_CONFIG["population_size"], 
+        description="Ukuran populasi", 
+        ge=10, 
+        le=200
+    )
+    generations: Optional[int] = Field(
+        DEFAULT_HGA_CONFIG["generations"], 
+        description="Jumlah generasi", 
+        ge=100, 
+        le=20000
+    )
+    crossover_rate: Optional[float] = Field(
+        DEFAULT_HGA_CONFIG["crossover_rate"], 
+        description="Probabilitas crossover", 
+        ge=0.0, 
+        le=1.0
+    )
+    mutation_rate: Optional[float] = Field(
+        DEFAULT_HGA_CONFIG["mutation_rate"], 
+        description="Probabilitas mutasi", 
+        ge=0.0, 
+        le=1.0
+    )
+    elitism_count: Optional[int] = Field(
+        DEFAULT_HGA_CONFIG["elitism_count"], 
+        description="Jumlah solusi terbaik yang dipertahankan", 
+        ge=1, 
+        le=10
+    )
+    tournament_size: Optional[int] = Field(
+        DEFAULT_HGA_CONFIG["tournament_size"], 
+        description="Ukuran tournament selection", 
+        ge=2, 
+        le=20
+    )
+    use_2opt: Optional[bool] = Field(
+        DEFAULT_HGA_CONFIG["use_2opt"], 
+        description="Menggunakan 2-Opt local search optimization"
+    )
+    two_opt_iterations: Optional[int] = Field(
+        DEFAULT_HGA_CONFIG["two_opt_iterations"], 
+        description="Jumlah iterasi 2-Opt", 
+        ge=10, 
+        le=2000
+    )
 
 class RouteRecommendationRequest(BaseModel):
     latitude: float = Field(..., description="Latitude lokasi user", ge=-90, le=90)
@@ -87,10 +142,14 @@ class RouteRecommendationRequest(BaseModel):
                 "longitude": 112.7521,
                 "num_routes": 3,
                 "hga_config": {
-                    "population_size": 70,
-                    "generations": 5000,
-                    "crossover_rate": 0.8,
-                    "mutation_rate": 0.1
+                    "population_size": DEFAULT_HGA_CONFIG["population_size"],
+                    "generations": DEFAULT_HGA_CONFIG["generations"],
+                    "crossover_rate": DEFAULT_HGA_CONFIG["crossover_rate"],
+                    "mutation_rate": DEFAULT_HGA_CONFIG["mutation_rate"],
+                    "elitism_count": DEFAULT_HGA_CONFIG["elitism_count"],
+                    "tournament_size": DEFAULT_HGA_CONFIG["tournament_size"],
+                    "use_2opt": DEFAULT_HGA_CONFIG["use_2opt"],
+                    "two_opt_iterations": DEFAULT_HGA_CONFIG["two_opt_iterations"]
                 }
             }
         }
@@ -120,20 +179,27 @@ async def root():
     return {
         "message": "Tourism Route Recommendation API",
         "version": "1.0.0",
+        "description": "API untuk rekomendasi rute wisata Surabaya menggunakan Hybrid Genetic Algorithm",
         "endpoints": {
             "health": "/health",
             "docs": "/docs",
-            "recommend": "/generate-routes (POST)"
+            "recommend": "/generate-routes (POST)",
+            "destinations": "/api/destinations (GET)",
+            "default_config": "/api/config/default (GET)",
+            "osrm_status": "/api/osrm/status (GET)"
         }
     }
 
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint"""
+    osrm_stats = get_osrm_cache_stats()
     return {
         "status": "healthy",
         "destinations_loaded": destinations is not None,
         "total_destinations": len(destinations) if destinations else 0,
+        "osrm_enabled": osrm_stats['osrm_enabled'],
+        "osrm_cache_size": osrm_stats['cache_size'],
         "timestamp": datetime.now().isoformat()
     }
 
@@ -167,14 +233,15 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
             generations=hga_config.generations,
             crossover_rate=hga_config.crossover_rate,
             mutation_rate=hga_config.mutation_rate,
-            elitism_count=2,
-            tournament_size=5,
-            use_2opt=True,
-            two_opt_iterations=500
+            elitism_count=hga_config.elitism_count,
+            tournament_size=hga_config.tournament_size,
+            use_2opt=hga_config.use_2opt,
+            two_opt_iterations=hga_config.two_opt_iterations
         )
         
         print(f"\nProcessing request for location: {user_location}")
-        print(f"HGA Config - Pop: {hga_config.population_size}, Gen: {hga_config.generations}")
+        print(f"HGA Config - Pop: {hga_config.population_size}, Gen: {hga_config.generations}, "
+              f"2-Opt: {hga_config.use_2opt} ({hga_config.two_opt_iterations} iter)")
         
         # Jalankan HGA
         best_chromosomes = hga.run(
@@ -205,7 +272,11 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
                 "population_size": hga_config.population_size,
                 "generations": hga_config.generations,
                 "crossover_rate": hga_config.crossover_rate,
-                "mutation_rate": hga_config.mutation_rate
+                "mutation_rate": hga_config.mutation_rate,
+                "elitism_count": hga_config.elitism_count,
+                "tournament_size": hga_config.tournament_size,
+                "use_2opt": hga_config.use_2opt,
+                "two_opt_iterations": hga_config.two_opt_iterations
             },
             "statistics": {
                 "total_generations": stats['total_generations'],
@@ -262,6 +333,101 @@ async def get_destinations():
         "total": len(destinations_list),
         "data": destinations_list
     }
+
+@app.get("/api/config/default", tags=["Configuration"])
+async def get_default_config():
+    """Get default HGA configuration (sesuai dengan Main.py)"""
+    return {
+        "success": True,
+        "data": {
+            "hga_config": DEFAULT_HGA_CONFIG,
+            "description": "Default configuration used in Main.py",
+            "note": "You can override these values in your request to /generate-routes"
+        }
+    }
+
+@app.get("/api/osrm/status", tags=["OSRM"])
+async def get_osrm_status():
+    """Get OSRM status and cache statistics"""
+    stats = get_osrm_cache_stats()
+    
+    profile_description = {
+        'driving': 'Motor/Mobil (paling cocok untuk motor di Indonesia)',
+        'bike': 'Sepeda',
+        'foot': 'Jalan kaki'
+    }
+    
+    return {
+        "success": True,
+        "data": {
+            "osrm_enabled": stats['osrm_enabled'],
+            "osrm_base_url": stats['osrm_base_url'],
+            "osrm_profile": stats['osrm_profile'],
+            "profile_description": profile_description.get(stats['osrm_profile'], 'Unknown'),
+            "cache_size": stats['cache_size'],
+            "available_profiles": list(profile_description.keys()),
+            "description": "OSRM is used to calculate real route distances on roads. Falls back to Haversine (straight-line distance) if OSRM fails."
+        }
+    }
+
+@app.post("/api/osrm/clear-cache", tags=["OSRM"])
+async def clear_cache():
+    """Clear OSRM distance cache"""
+    clear_osrm_cache()
+    return {
+        "success": True,
+        "message": "OSRM cache cleared successfully"
+    }
+
+@app.post("/api/osrm/toggle", tags=["OSRM"])
+async def toggle_osrm(enable: bool = True):
+    """
+    Enable or disable OSRM usage
+    
+    - **enable**: True to use OSRM, False to use Haversine only
+    """
+    set_use_osrm(enable)
+    status = "enabled" if enable else "disabled"
+    return {
+        "success": True,
+        "message": f"OSRM has been {status}",
+        "osrm_enabled": enable
+    }
+
+@app.post("/api/osrm/set-profile", tags=["OSRM"])
+async def set_profile(profile: str = "driving"):
+    """
+    Set OSRM transportation profile
+    
+    - **profile**: Transportation mode
+      - 'driving': Motor/Mobil (default, paling cocok untuk motor)
+      - 'bike': Sepeda
+      - 'foot': Jalan kaki
+    
+    Note: Public OSRM server tidak memiliki profil 'motorcycle' terpisah.
+    Gunakan 'driving' untuk motor di Indonesia.
+    """
+    try:
+        set_osrm_profile(profile)
+        
+        profile_description = {
+            'driving': 'Motor/Mobil',
+            'bike': 'Sepeda',
+            'foot': 'Jalan kaki'
+        }
+        
+        return {
+            "success": True,
+            "message": f"OSRM profile changed to '{profile}'",
+            "profile": profile,
+            "description": profile_description.get(profile, 'Unknown'),
+            "note": "Cache has been cleared due to profile change"
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 if __name__ == "__main__":
     import uvicorn

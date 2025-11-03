@@ -6,6 +6,12 @@ fastapi>=0.104.0      # Web framework untuk API
 uvicorn>=0.24.0       # ASGI server
 pydantic>=2.0.0       # Data validation
 
+# HTTP Requests
+requests>=2.25.0      # Untuk OSRM API calls
+
+# Progress bar
+tqdm>=4.66.1          # Progress bar untuk build distance matrix
+
 # CORS support
 python-multipart>=0.0.6  # Untuk handling form data (opsional)
 

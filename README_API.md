@@ -72,7 +72,37 @@ Mengecek status API dan data yang dimuat.
 }
 ```
 
-### 3. Get Route Recommendations (Main Endpoint)
+### 3. Get Default Configuration
+
+```
+GET /api/config/default
+```
+
+Mendapatkan konfigurasi default HGA yang digunakan (sesuai dengan Main.py).
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "hga_config": {
+      "population_size": 70,
+      "generations": 10000,
+      "crossover_rate": 0.8,
+      "mutation_rate": 0.1,
+      "elitism_count": 2,
+      "tournament_size": 5,
+      "use_2opt": true,
+      "two_opt_iterations": 500
+    },
+    "description": "Default configuration used in Main.py",
+    "note": "You can override these values in your request to /generate-routes"
+  }
+}
+```
+
+### 4. Get Route Recommendations (Main Endpoint)
 
 ```
 POST /generate-routes
@@ -89,9 +119,13 @@ Mendapatkan rekomendasi rute wisata optimal.
   "num_routes": 3,
   "hga_config": {
     "population_size": 70,
-    "generations": 5000,
+    "generations": 10000,
     "crossover_rate": 0.8,
-    "mutation_rate": 0.1
+    "mutation_rate": 0.1,
+    "elitism_count": 2,
+    "tournament_size": 5,
+    "use_2opt": true,
+    "two_opt_iterations": 500
   }
 }
 ```
@@ -101,11 +135,15 @@ Mendapatkan rekomendasi rute wisata optimal.
 - `latitude` (required): Latitude lokasi user (-90 to 90)
 - `longitude` (required): Longitude lokasi user (-180 to 180)
 - `num_routes` (optional): Jumlah rute yang diinginkan (1-5, default: 3)
-- `hga_config` (optional): Konfigurasi HGA
-  - `population_size`: Ukuran populasi (10-200, default: 70)
-  - `generations`: Jumlah generasi (100-20000, default: 5000)
-  - `crossover_rate`: Probabilitas crossover (0.0-1.0, default: 0.8)
-  - `mutation_rate`: Probabilitas mutasi (0.0-1.0, default: 0.1)
+- `hga_config` (optional): Konfigurasi HGA (jika tidak diisi, akan menggunakan default dari Main.py)
+  - `population_size`: Ukuran populasi (10-200, **default: 70**)
+  - `generations`: Jumlah generasi (100-20000, **default: 10000**)
+  - `crossover_rate`: Probabilitas crossover (0.0-1.0, **default: 0.8**)
+  - `mutation_rate`: Probabilitas mutasi (0.0-1.0, **default: 0.1**)
+  - `elitism_count`: Jumlah solusi terbaik yang dipertahankan (1-10, **default: 2**)
+  - `tournament_size`: Ukuran tournament selection (2-20, **default: 5**)
+  - `use_2opt`: Menggunakan 2-Opt optimization (**default: true**)
+  - `two_opt_iterations`: Jumlah iterasi 2-Opt (10-2000, **default: 500**)
 
 **Response:**
 
@@ -120,12 +158,16 @@ Mendapatkan rekomendasi rute wisata optimal.
     },
     "hga_config": {
       "population_size": 70,
-      "generations": 5000,
+      "generations": 10000,
       "crossover_rate": 0.8,
-      "mutation_rate": 0.1
+      "mutation_rate": 0.1,
+      "elitism_count": 2,
+      "tournament_size": 5,
+      "use_2opt": true,
+      "two_opt_iterations": 500
     },
     "statistics": {
-      "total_generations": 5000,
+      "total_generations": 10000,
       "best_distance_km": 9.19,
       "initial_fitness": 0.031401,
       "final_fitness": 0.108811,

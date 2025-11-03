@@ -164,7 +164,6 @@ class TwoOptOptimizer:
         current_distance = self._calculate_route_distance(
             current_genes,
             chromosome.start_point,
-            # chromosome.end_point
         )
         
         improved = True

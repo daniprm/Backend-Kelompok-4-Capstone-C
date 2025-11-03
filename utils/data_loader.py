@@ -30,11 +30,19 @@ def load_destinations_from_csv(filepath: str) -> List[Destination]:
                 lat_str = row['latitude'].replace(',', '.')
                 lon_str = row['longitude'].replace(',', '.')
                 
+                # Parse optional fields (alamat, image_url, deskripsi)
+                alamat = row.get('alamat', '').strip() if row.get('alamat') else None
+                image_url = row.get('image_url', '').strip() if row.get('image_url') else None
+                deskripsi = row.get('deskripsi', '').strip() if row.get('deskripsi') else None
+                
                 destination = Destination(
                     nama=row['nama_destinasi'].strip(),
                     kategori=kategori_list,
                     latitude=float(lat_str),
-                    longitude=float(lon_str)
+                    longitude=float(lon_str),
+                    alamat=alamat,
+                    image_url=image_url,
+                    deskripsi=deskripsi
                 )
                 
                 destinations.append(destination)
