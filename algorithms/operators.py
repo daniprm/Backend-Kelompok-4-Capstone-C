@@ -194,7 +194,7 @@ class GAOperators:
             elif offspring1_genes[i] is None and parent4_filtered[i] is not None:
                 offspring1_genes[i] = parent4_filtered[i]
             else:
-                # Fallback: gunakan gen dari parent1 jika parent2_filtered habis
+                # Fallback: gunakan gen dari parent1 jika parent habis
                 offspring1_genes[i] = parent1.genes[i]
 
         
@@ -226,18 +226,16 @@ class GAOperators:
             elif offspring2_genes[i] is None and parent4_filtered[i] is not None:
                 offspring2_genes[i] = parent4_filtered[i]
             else:
-                # Fallback: gunakan gen dari parent2 jika parent1_filtered habis
+                # Fallback: gunakan gen dari parent2 jika parent habis
                 offspring2_genes[i] = parent2.genes[i]
         
         offspring1 = Chromosome(
             offspring1_genes, 
             parent1.start_point, 
-            # parent1.end_point
           )
         offspring2 = Chromosome(
             offspring2_genes, 
             parent2.start_point, 
-            # parent2.end_point
           )
         
         return offspring1, offspring2
@@ -350,7 +348,6 @@ class GAOperators:
         return Chromosome(
             mutated_genes, 
             chromosome.start_point, 
-            # chromosome.end_point
           )
     
     @staticmethod

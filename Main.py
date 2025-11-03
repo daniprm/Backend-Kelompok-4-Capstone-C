@@ -2,21 +2,18 @@
 Main application untuk sistem rekomendasi rute wisata Surabaya
 menggunakan Hybrid Genetic Algorithm (HGA)
 """
-import os
 import json
 from typing import Tuple, List
 from algorithms.hga import HybridGeneticAlgorithm
 from utils.data_loader import load_destinations_from_csv
 from models.route import Route
-from visualization.map_plotter import RouteMapPlotter
-from visualization.convergence_plotter import ConvergencePlotter
 
 class TourismRouteRecommendationSystem:
     """
     Sistem Rekomendasi Rute Wisata menggunakan HGA
     """
     
-    def __init__(self, data_file: str = "./data/data_wisata_sby.csv"):
+    def __init__(self, data_file: str = "./data/data_wisata_sby2.csv"):
         """
         Inisialisasi sistem
         
@@ -37,10 +34,10 @@ class TourismRouteRecommendationSystem:
         print(self.destinations[0])
         
     def initialize_hga(self, 
-                      population_size: int = 70,
-                      generations: int = 10000,
-                      crossover_rate: float = 0.8,
-                      mutation_rate: float = 0.1):
+                      population_size,
+                      generations,
+                      crossover_rate,
+                      mutation_rate):
         """
         Inisialisasi Hybrid Genetic Algorithm
         
@@ -84,8 +81,6 @@ class TourismRouteRecommendationSystem:
         best_chromosomes = self.hga.run(
             destinations=self.destinations,
             start_point=user_location,
-            # TODO: End point adalah destinasi terakhir, bukan lokasi user
-            # end_point=user_location,
             num_solutions=num_routes
         )
         
@@ -137,7 +132,7 @@ def main():
     print()
     
     # Inisialisasi sistem
-    system = TourismRouteRecommendationSystem("./data/data_wisata_sby.csv")
+    system = TourismRouteRecommendationSystem("./data/data_wisata_sby2.csv")
     
     # Load data
     system.load_data()
@@ -157,11 +152,11 @@ def main():
     print(f"\nLokasi Anda: {user_location}")
     print()
     
-    # Konfigurasi HGA
+    # Konfigurasi HGA Final
     print("Konfigurasi HGA:")
     system.initialize_hga(
         population_size=70,
-        generations=10000,
+        generations=3000,
         crossover_rate=0.8,
         mutation_rate=0.1
     )
@@ -191,77 +186,6 @@ def main():
     
     print(f"\n{'='*70}")
     print(f"Hasil JSON disimpan di: {output_file}")
-    print(f"{'='*70}")
-    
-    # VISUALISASI - Buat grafik konvergensi
-    print(f"\n{'='*70}")
-    print(" MEMBUAT VISUALISASI")
-    print(f"{'='*70}")
-    
-    # Buat directory untuk output
-    os.makedirs('visualization/outputs', exist_ok=True)
-    
-    # Ambil statistik dari HGA
-    stats = system.hga.get_evolution_statistics()
-    
-    # Plot grafik konvergensi
-    print("\n1. Membuat grafik konvergensi...")
-    plotter = ConvergencePlotter(output_dir='visualization/outputs')
-    graph_files = plotter.create_all_plots(stats)
-    
-    # Buat peta rute
-    print("\n2. Membuat peta rute interaktif dengan routing API...")
-    map_plotter = RouteMapPlotter(center_location=user_location, use_real_routes=True)
-    
-    # Peta rute terbaik
-    best_route_dest = system.hga.best_solution.genes
-    best_distance = system.hga.best_solution.get_total_distance()
-    
-    route_map = map_plotter.create_route_map(
-        start_point=user_location,
-        destinations=best_route_dest,
-        route_name=f"Rute Terbaik - {best_distance:.2f} km"
-    )
-    map_plotter.save_map('visualization/outputs/best_route_map.html')
-    
-    # Peta semua rute
-    routes_data = []
-    colors = ['blue', 'red', 'green']
-    best_chromosomes = system.hga.get_evolution_statistics()['best_solution']
-    
-    # Get top 3 solutions from final population
-    from algorithms.population import Population
-    if hasattr(system.hga, 'final_population'):
-        top_solutions = system.hga.final_population.get_best_n_chromosomes(3)
-    else:
-        top_solutions = [system.hga.best_solution] * 3
-    
-    for i, sol in enumerate(top_solutions[:3]):
-        routes_data.append({
-            'destinations': sol.genes,
-            'name': f'Rute #{i+1} ({sol.get_total_distance():.2f} km)',
-            'color': colors[i]
-        })
-    
-    multi_map = map_plotter.create_multiple_routes_map(
-        start_point=user_location,
-        routes_data=routes_data
-    )
-    multi_map = map_plotter.add_legend(multi_map)
-    multi_map.save('visualization/outputs/all_routes_map.html')
-    print("   [OK] Peta semua rute: visualization/outputs/all_routes_map.html")
-    
-    # Summary
-    print(f"\n{'='*70}")
-    print(" VISUALISASI SELESAI")
-    print(f"{'='*70}")
-    print("\nOutput yang dihasilkan:")
-    print(f"  [JSON] Data        : {output_file}")
-    print(f"  [MAP]  Peta Terbaik: visualization/outputs/best_route_map.html")
-    print(f"  [MAP]  Peta Semua  : visualization/outputs/all_routes_map.html")
-    print(f"  [GRAF] Grafik (4)  : visualization/outputs/*.png")
-    print(f"{'='*70}")
-    print("\n[INFO] Buka file HTML untuk melihat peta interaktif di browser!")
     print(f"{'='*70}")
 
 

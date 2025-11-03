@@ -59,59 +59,66 @@ class HybridGeneticAlgorithm:
         print(f"Populasi: {self.population_size}, Generasi: {self.generations}")
         print(f"Crossover Rate: {self.crossover_rate}, Mutation Rate: {self.mutation_rate}")
         print(f"Elitism: {self.elitism_count}, 2-Opt: {self.use_2opt}\n")
-        
-        # 1. Inisialisasi populasi awal
-        print("Tahap 1: Inisialisasi populasi...")
-        population = Population(population_size=self.population_size)
-        population.initialize_random_population(
-            destinations,
-            start_point,
-          )
-        population.evaluate_fitness()
-        
-        best_initial = population.get_best_chromosome()
-        print(f"Populasi awal - Best distance: {best_initial.get_total_distance():.2f} km\n")
-        
-        # 2. Evolusi melalui generasi
-        print("Tahap 2: Evolusi melalui generasi...")
-        for generation in range(self.generations):
-            # 3. Evaluasi fitness
+
+        bestRoutes = []
+        for numRoute in range(num_solutions):
+            print(f" Mencari Rute Terbaik ke-{numRoute + 1} ")
+            print("===================================")
+            self.best_solution = None
+            self.best_fitness_history = []
+            self.average_fitness_history = []
+            # 1. Inisialisasi populasi awal
+            print("Tahap 1: Inisialisasi populasi...")
+            population = Population(population_size=self.population_size)
+            population.initialize_random_population(
+                destinations,
+                start_point,
+            )
+            population.evaluate_fitness()
+            
+            best_initial = population.get_best_chromosome()
+            print(f"Populasi awal - Best distance: {best_initial.get_total_distance():.2f} km\n")
+            
+            # 2. Evolusi melalui generasi
+            print("Tahap 2: Evolusi melalui generasi...")
+            for generation in range(self.generations):
+                # 3. Evaluasi fitness
+                population.evaluate_fitness()
+                population.sort_by_fitness()
+                
+                # Track best solution
+                current_best = population.get_best_chromosome()
+                self.best_fitness_history.append(current_best.get_fitness())
+                self.average_fitness_history.append(population.get_average_fitness())
+                
+                if self.best_solution is None or current_best.get_fitness() > self.best_solution.get_fitness():
+                    self.best_solution = current_best.copy()
+                
+                # Print progress setiap 20 generasi
+                if generation % 20 == 0:
+                    print(f"Gen {generation:3d} - Best: {current_best.get_total_distance():.2f} km, "
+                        f"Avg: {1/population.get_average_fitness():.2f} km")
+                
+                # 9. Cek konvergensi
+                if self._check_convergence(generation):
+                    print(f"\nKonvergensi tercapai pada generasi {generation}")
+                    break
+                
+                # 8. Generasi populasi baru
+                new_population = self._create_new_generation(population)
+                # new_population = self._create_new_generation_modified(population, destinations, start_point)
+                population = new_population
+
+            print(f"\n=== HGA ke-{numRoute + 1} Selesai ===")
+            print(f"Solusi terbaik: {self.best_solution.get_total_distance():.2f} km\n")
+            
+            # Simpan final population untuk visualisasi
             population.evaluate_fitness()
             population.sort_by_fitness()
+            self.final_population = population
             
-            # Track best solution
-            current_best = population.get_best_chromosome()
-            self.best_fitness_history.append(current_best.get_fitness())
-            self.average_fitness_history.append(population.get_average_fitness())
-            
-            if self.best_solution is None or current_best.get_fitness() > self.best_solution.get_fitness():
-                self.best_solution = current_best.copy()
-            
-            # Print progress setiap 20 generasi
-            if generation % 20 == 0:
-                print(f"Gen {generation:3d} - Best: {current_best.get_total_distance():.2f} km, "
-                      f"Avg: {1/population.get_average_fitness():.2f} km")
-            
-            # 9. Cek konvergensi
-            if self._check_convergence(generation):
-                print(f"\nKonvergensi tercapai pada generasi {generation}")
-                break
-            
-            # 8. Generasi populasi baru
-            # new_population = self._create_new_generation(population)
-            new_population = self._create_new_generation_modified(population, destinations, start_point)
-            population = new_population
-        
-        print(f"\n=== HGA Selesai ===")
-        print(f"Solusi terbaik: {self.best_solution.get_total_distance():.2f} km\n")
-        
-        # Simpan final population untuk visualisasi
-        population.evaluate_fitness()
-        population.sort_by_fitness()
-        self.final_population = population
-        
-        # Return n solusi terbaik yang unik
-        return population.get_best_n_chromosomes(num_solutions)
+            bestRoutes.append(self.best_solution)
+        return bestRoutes
     
     def _create_new_generation(self, population: Population) -> Population:
         """
@@ -233,7 +240,7 @@ class HybridGeneticAlgorithm:
         return Population(chromosomes=new_chromosomes, population_size=self.population_size)
     
     # TODO: Pengatur konvergensi
-    def _check_convergence(self, generation: int, patience: int = 1500) -> bool:
+    def _check_convergence(self, generation: int, patience: int = 50000) -> bool:
         """
         Mengecek apakah algoritma sudah konvergen
         
