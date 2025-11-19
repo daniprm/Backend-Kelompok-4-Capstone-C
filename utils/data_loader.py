@@ -2,6 +2,7 @@
 Utility functions untuk memuat dan memproses data destinasi wisata
 """
 import csv
+import json
 from typing import List, Dict
 from models.destination import Destination
 
@@ -45,6 +46,34 @@ def load_destinations_from_csv(filepath: str) -> List[Destination]:
     
     return destinations
 
+def load_destinations_from_jsonl(filepath: str) -> List[Dict]:
+    """
+    Memuat data destinasi wisata dari file JSONL
+    
+    Args:
+        filepath: Path ke file JSONL
+        
+    Returns:
+        List of destination dictionaries
+    """
+    destinations = []
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.strip()
+                if line:  # Skip empty lines
+                    try:
+                        data = json.loads(line)
+                        destinations.append(data)
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing JSON line: {e}")
+                        continue
+    except FileNotFoundError:
+        print(f"File not found: {filepath}")
+        return []
+    
+    return destinations
 
 def filter_destinations_by_category(destinations: List[Destination], 
                                     category: str) -> List[Destination]:

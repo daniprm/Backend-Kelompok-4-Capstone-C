@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 # --- Request Models ---
 
@@ -34,3 +34,23 @@ class RecommendationResponse(BaseModel):
     recommendations: List[RouteResponse]
     statistics: Dict
     visualization_urls: Dict[str, str]
+
+class WisataDestination(BaseModel):
+    restaurant_id: int
+    nama_destinasi: str
+    kategori: str
+    latitude: str
+    longitude: str
+    alamat: Optional[str] = None
+    image_url: Optional[str] = None
+    deskripsi: Optional[str] = None
+
+class WisataListResponse(BaseModel):
+    message: str
+    total: int
+    data: List[WisataDestination]
+
+class WisataStatsResponse(BaseModel):
+    message: str
+    total_destinations: int
+    kategori_count: Dict[str, int]

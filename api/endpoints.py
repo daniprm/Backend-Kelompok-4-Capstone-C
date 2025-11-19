@@ -1,14 +1,110 @@
 import os
 import uuid
-from fastapi import APIRouter, HTTPException, Request
+import json
+from fastapi import APIRouter, HTTPException, Request, Query
 from system import TourismRouteRecommendationSystem
 from visualization.map_plotter import RouteMapPlotter
 from visualization.convergence_plotter import ConvergencePlotter
-from api.schemas import RouteRequest, RecommendationResponse
+from api.schemas import RouteRequest, RecommendationResponse, WisataListResponse, WisataDestination, WisataStatsResponse
 from api.config import OUTPUT_DIR # Ambil path dari config
+from utils.database import get_all_wisata, get_wisata_by_id, search_wisata, get_wisata_statistics
 from datetime import datetime
 
 router = APIRouter()
+
+@router.get("/wisata", response_model=WisataListResponse)
+async def get_wisata_data(
+    kategori: str = Query(None, description="Filter berdasarkan kategori (mall, oleh_oleh, non_kuliner, makanan_ringan, makanan_berat, all)"),
+    limit: int = Query(None, gt=0, description="Batas jumlah data yang dikembalikan"),
+    offset: int = Query(0, ge=0, description="Offset untuk pagination"),
+    search: str = Query(None, description="Cari berdasarkan nama atau alamat")
+):
+    """
+    Mengambil data wisata dari database SQLite
+    
+    Query Parameters:
+    - kategori: Filter berdasarkan kategori destinasi
+    - limit: Jumlah maksimal data yang dikembalikan
+    - offset: Posisi awal data untuk pagination
+    - search: Kata kunci pencarian untuk nama atau alamat
+    """
+    
+    try:
+        # Jika ada pencarian, gunakan search_wisata
+        if search:
+            all_data = search_wisata(search, limit)
+            total = len(all_data)
+        else:
+            # Ambil data dari database dengan filtering dan pagination
+            all_data, total = get_all_wisata(kategori=kategori, limit=limit, offset=offset)
+        
+        if not all_data:
+            return WisataListResponse(
+                message="Data wisata tidak ditemukan",
+                total=0,
+                data=[]
+            )
+        
+        # Convert ke Pydantic models
+        wisata_list = [WisataDestination(**item) for item in all_data]
+        
+        return WisataListResponse(
+            message="Data wisata berhasil diambil",
+            total=total,
+            data=wisata_list
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error mengambil data: {str(e)}")
+
+@router.get("/wisata/{restaurant_id}", response_model=WisataDestination)
+async def get_wisata_by_id_endpoint(restaurant_id: int):
+    """
+    Mengambil data wisata berdasarkan restaurant_id dari database SQLite
+    
+    Path Parameters:
+    - restaurant_id: ID unik dari destinasi wisata
+    """
+    
+    try:
+        # Ambil data dari database
+        wisata_data = get_wisata_by_id(restaurant_id)
+        
+        if not wisata_data:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Destinasi wisata dengan ID {restaurant_id} tidak ditemukan"
+            )
+        
+        return WisataDestination(**wisata_data)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error mengambil data: {str(e)}")
+
+@router.get("/wisata/stats/overview", response_model=WisataStatsResponse)
+async def get_wisata_stats():
+    """
+    Mengambil statistik data wisata
+    
+    Returns:
+    - Total jumlah destinasi
+    - Jumlah destinasi per kategori
+    """
+    
+    try:
+        stats = get_wisata_statistics()
+        
+        return WisataStatsResponse(
+            message="Statistik data wisata berhasil diambil",
+            total_destinations=stats['total_destinations'],
+            kategori_count=stats['kategori_count']
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error mengambil statistik: {str(e)}")
+
 @router.post("/generate-routes", response_model=RecommendationResponse)
 async def generate_routes(request_data: RouteRequest, http_request: Request):
     """
