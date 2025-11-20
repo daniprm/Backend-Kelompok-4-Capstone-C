@@ -14,11 +14,17 @@ class Destination:
         kategori: List kategori destinasi (makanan_berat, makanan_ringan, non_kuliner, oleh_oleh)
         latitude: Koordinat latitude
         longitude: Koordinat longitude
+        alamat: Alamat destinasi (optional)
+        image_url: URL gambar destinasi (optional)
+        deskripsi: Deskripsi destinasi (optional)
     """
     nama: str
     kategori: List[str]
     latitude: float
     longitude: float
+    alamat: str = None
+    image_url: str = None
+    deskripsi: str = None
     
     def has_category(self, category: str) -> bool:
         """

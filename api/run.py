@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Impor dari modul lokal
 from system import TourismRouteRecommendationSystem
 from api.config import OUTPUT_DIR, DATA_FILE_PATH
-from api.endpoints import router as api_router
+from api.endpoints import router as api_router, initialize_system
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,28 +17,21 @@ async def lifespan(app: FastAPI):
     # 1. Pastikan direktori output ada
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     print(f"Direktori output di: {os.path.abspath(OUTPUT_DIR)}")
-    print(f"Mencari data di: {os.path.abspath(DATA_FILE_PATH)}")
-
-    # 2. Muat sistem rekomendasi (satu kali)
-    print("Memuat sistem rekomendasi (satu kali)...")
+    
+    # 2. Load destinations dari SQLite (dipanggil dari endpoints.py)
+    print("Memuat data destinasi dari SQLite...")
     try:
-        system = TourismRouteRecommendationSystem(data_file=DATA_FILE_PATH)
-        system.load_data()
-        # Simpan instance sistem di 'app.state' agar bisa diakses oleh endpoint
-        app.state.recommendation_system = system
-        print("Sistem rekomendasi berhasil dimuat.")
-    except FileNotFoundError as e:
-        print(f"FATAL ERROR: Data file not found at {DATA_FILE_PATH}")
-        print("Pastikan file 'data_wisata_sby.csv' ada di folder 'data'.")
-        # Biarkan server crash jika data tidak ada
+        initialize_system()
+        print("Destinasi berhasil dimuat dari database.")
+    except Exception as e:
+        print(f"FATAL ERROR: Gagal memuat data destinasi: {e}")
         raise e
         
     yield
     
     # --- Perintah saat Shutdown Server ---
     print("Server FastAPI sedang berhenti...")
-    app.state.recommendation_system = None
-    print("Sistem rekomendasi dibersihkan.")
+    print("Cleanup selesai.")
 
 
 # --- Inisialisasi Aplikasi FastAPI ---
@@ -67,10 +60,7 @@ def root():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
+        '*'
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

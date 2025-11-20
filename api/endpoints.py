@@ -1,16 +1,190 @@
 import os
 import uuid
 import json
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Request, Query, FastAPI
 from system import TourismRouteRecommendationSystem
 from visualization.map_plotter import RouteMapPlotter
 from visualization.convergence_plotter import ConvergencePlotter
-from api.schemas import RouteRequest, RecommendationResponse, WisataListResponse, WisataDestination, WisataStatsResponse
+from api.schemas import *
 from api.config import OUTPUT_DIR # Ambil path dari config
 from utils.database import get_all_wisata, get_wisata_by_id, search_wisata, get_wisata_statistics
+from utils.data_loader import load_destinations_from_sqlite
 from datetime import datetime
+from utils.distance_matrix import *
+from utils.distance import *
+from algorithms.hga import *
+from models.route import *
+from contextlib import asynccontextmanager
+
 
 router = APIRouter()
+destinations = None
+
+def initialize_system():
+    """Load destinations data on startup from SQLite database"""
+    global destinations
+    if destinations is None:
+        print("Loading destinations data from SQLite...")
+        try:
+            destinations = load_destinations_from_sqlite()
+            print(f"Successfully loaded {len(destinations)} destinations from database")
+        except Exception as e:
+            print(f"ERROR loading destinations from SQLite: {e}")
+            print("Attempting to load from CSV as fallback...")
+            try:
+                from utils.data_loader import load_destinations_from_csv
+                destinations = load_destinations_from_csv("./data/data_wisata_sby.csv")
+                print(f"Successfully loaded {len(destinations)} destinations from CSV")
+            except Exception as csv_error:
+                print(f"ERROR loading from CSV: {csv_error}")
+                raise Exception("Failed to load destinations from both SQLite and CSV")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    initialize_system()
+    print("API Server started successfully!")
+    yield
+    # Shutdown (jika diperlukan cleanup)
+    print("API Server shutting down...")
+
+@router.get("/api/config/default", tags=["Configuration"])
+async def get_default_config():
+    """Get default HGA configuration (sesuai dengan Main.py)"""
+    return {
+        "success": True,
+        "data": {
+            "hga_config": DEFAULT_HGA_CONFIG,
+            "description": "Default configuration used in Main.py",
+            "note": "You can override these values in your request to /generate-routes"
+        }
+    }
+
+@router.get("/api/osrm/status", tags=["OSRM"])
+async def get_osrm_status():
+    """Get OSRM status and cache statistics"""
+    stats = get_osrm_cache_stats()
+    
+    profile_description = {
+        'driving': 'Motor/Mobil (paling cocok untuk motor di Indonesia)',
+        'bike': 'Sepeda',
+        'foot': 'Jalan kaki'
+    }
+    
+    return {
+        "success": True,
+        "data": {
+            "osrm_enabled": stats['osrm_enabled'],
+            "osrm_base_url": stats['osrm_base_url'],
+            "osrm_profile": stats['osrm_profile'],
+            "profile_description": profile_description.get(stats['osrm_profile'], 'Unknown'),
+            "cache_size": stats['osrm_runtime_cache_size'],
+            "available_profiles": list(profile_description.keys()),
+            "description": "OSRM is used to calculate real route distances on roads. Falls back to Haversine (straight-line distance) if OSRM fails."
+        }
+    }
+
+@router.post("/api/osrm/clear-cache", tags=["OSRM"])
+async def clear_cache():
+    """Clear OSRM distance cache"""
+    clear_osrm_cache()
+    return {
+        "success": True,
+        "message": "OSRM cache cleared successfully"
+    }
+
+@router.post("/api/osrm/toggle", tags=["OSRM"])
+async def toggle_osrm(enable: bool = True):
+    """
+    Enable or disable OSRM usage
+    
+    - **enable**: True to use OSRM, False to use Haversine only
+    """
+    set_use_osrm(enable)
+    status = "enabled" if enable else "disabled"
+    return {
+        "success": True,
+        "message": f"OSRM has been {status}",
+        "osrm_enabled": enable
+    }
+
+@router.post("/api/osrm/set-profile", tags=["OSRM"])
+async def set_profile(profile: str = "driving"):
+    """
+    Set OSRM transportation profile
+    
+    - **profile**: Transportation mode
+      - 'driving': Motor/Mobil (default, paling cocok untuk motor)
+      - 'bike': Sepeda
+      - 'foot': Jalan kaki
+    
+    Note: Public OSRM server tidak memiliki profil 'motorcycle' terpisah.
+    Gunakan 'driving' untuk motor di Indonesia.
+    """
+    try:
+        set_osrm_profile(profile)
+        
+        profile_description = {
+            'driving': 'Motor/Mobil',
+            'bike': 'Sepeda',
+            'foot': 'Jalan kaki'
+        }
+        
+        return {
+            "success": True,
+            "message": f"OSRM profile changed to '{profile}'",
+            "profile": profile,
+            "description": profile_description.get(profile, 'Unknown'),
+            "note": "Cache has been cleared due to profile change"
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+        
+@router.get("/api/destinations", tags=["Destinations"])
+async def get_destinations():
+    """Get all available destinations"""
+    if destinations is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Destinations data not loaded"
+        )
+    
+    destinations_list = []
+    for dest in destinations:
+        destinations_list.append({
+            "nama": dest.nama,
+            "kategori": dest.kategori,
+            "coordinates": {
+                "latitude": dest.latitude,
+                "longitude": dest.longitude
+            }
+        })
+    
+    return {
+        "success": True,
+        "total": len(destinations_list),
+        "data": destinations_list
+    }
+    
+@router.get("/", tags=["Root"])
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Tourism Route Recommendation API",
+        "version": "1.0.0",
+        "description": "API untuk rekomendasi rute wisata Surabaya menggunakan Hybrid Genetic Algorithm",
+        "endpoints": {
+            "health": "/health",
+            "docs": "/docs",
+            "recommend": "/generate-routes (POST)",
+            "destinations": "/api/destinations (GET)",
+            "default_config": "/api/config/default (GET)",
+            "osrm_status": "/api/osrm/status (GET)"
+        }
+    }
 
 @router.get("/wisata", response_model=WisataListResponse)
 async def get_wisata_data(
@@ -105,155 +279,119 @@ async def get_wisata_stats():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error mengambil statistik: {str(e)}")
 
-@router.post("/generate-routes", response_model=RecommendationResponse)
-async def generate_routes(request_data: RouteRequest, http_request: Request):
+@router.post("/generate-routes", response_model=RouteRecommendationResponse, tags=["Recommendations"])
+async def get_route_recommendations(request: RouteRecommendationRequest):
     """
-    Menghasilkan rekomendasi rute wisata berdasarkan lokasi pengguna dan parameter HGA.
+    Mendapatkan rekomendasi rute wisata optimal berdasarkan lokasi user
+    
+    - **latitude**: Latitude lokasi user (-90 sampai 90)
+    - **longitude**: Longitude lokasi user (-180 sampai 180)
+    - **num_routes**: Jumlah rute yang diinginkan (1-5, default: 3)
+    - **hga_config**: Konfigurasi HGA (opsional)
     """
-    
-    # 1. Dapatkan sistem
-    system: TourismRouteRecommendationSystem = http_request.app.state.recommendation_system
-    if not system:
-        raise HTTPException(status_code=503, detail="Sistem belum siap.")
-    
-    # 2. Inisialisasi HGA
     try:
-        system.initialize_hga(
-            population_size=request_data.population_size,
-            generations=request_data.generations,
-            crossover_rate=request_data.crossover_rate,
-            mutation_rate=request_data.mutation_rate
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    user_location = (request_data.latitude, request_data.longitude)
-    
-    # 3. Jalankan HGA
-    print(f"Menjalankan HGA untuk user di {user_location}...")
-    try:
-        recommendations = system.get_route_recommendations(
-            user_location=user_location,
-            num_routes=request_data.num_routes
-        )
-    except Exception as e:
-        print(f"Error saat menjalankan HGA: {e}")
-        raise HTTPException(status_code=500, detail=f"Terjadi error saat kalkulasi: {e}")
-
-    print("HGA selesai.")
-    
-    # 4. Dapatkan statistik
-    # stats_raw berisi 'best_solution' yang tidak serializable
-    stats_raw = system.hga.get_evolution_statistics()
-    
-    # 5. Buat visualisasi
-    run_id = str(uuid.uuid4())[:8]
-    base_url = str(http_request.base_url)
-    vis_urls = {}
-    
-    map_plotter = RouteMapPlotter(center_location=user_location, use_real_routes=True)
-    
-    # --- 5a. Peta Rute Terbaik ---
-    if recommendations and system.hga.best_solution:
-        try:
-            print("Membuat peta rute terbaik...")
-            best_route_genes = system.hga.best_solution.genes
-            map_filename = f"best_route_{datetime.now().isoformat()}.html"
-            map_filepath = os.path.join(OUTPUT_DIR, map_filename)
-            best_map = map_plotter.create_route_map(
-                start_point=user_location,
-                destinations=best_route_genes
+        # Validasi destinations sudah dimuat
+        if destinations is None:
+            raise HTTPException(
+                status_code=500, 
+                detail="Destinations data not loaded. Please restart the server."
             )
-            map_plotter.save_map(map_filepath) 
-            vis_urls["best_route_map"] = f"{base_url}static/{map_filename}"
-        except Exception as e:
-            print(f"Error saat membuat peta terbaik: {e}")
-            vis_urls["best_route_map"] = f"Error: {e}"
-
-    # --- 5b. Peta Semua Rute ---
-    if recommendations and hasattr(system.hga, 'final_population'):
-        try:
-            print(f"Membuat peta {request_data.num_routes} rute terbaik...")
-            top_solutions = system.hga.final_population.get_best_n_chromosomes(request_data.num_routes)
-            routes_data = []
-            colors = ['blue', 'red', 'green', 'purple', 'orange']
-            for i, sol in enumerate(top_solutions):
-                routes_data.append({
-                    'destinations': sol.genes,
-                    'name': f'Rute #{i+1} ({sol.get_total_distance():.2f} km)',
-                    'color': colors[i % len(colors)]
-                })
-            
-            multi_map = map_plotter.create_multiple_routes_map(
-                start_point=user_location,
-                routes_data=routes_data
-            )
-            multi_map = map_plotter.add_legend(multi_map)
-            all_map_filename = f"all_routes_{datetime.now().isoformat()}.html"
-            all_map_filepath = os.path.join(OUTPUT_DIR, all_map_filename)
-            multi_map.save(all_map_filepath)
-            vis_urls["all_routes_map"] = f"{base_url}static/{all_map_filename}"
-        except Exception as e:
-            print(f"Error saat membuat peta semua rute: {e}")
-            vis_urls["all_routes_map"] = f"Error: {e}"
-
-    # --- 5c. Buat SEMUA Plot Konvergensi ---
-    try:
-        print("Membuat semua plot statistik...")
-        plotter = ConvergencePlotter(output_dir=OUTPUT_DIR)
         
-        # Plot 1: Fitness Evolution
-        plot_fitness_filename = f"fitness_evolution_{datetime.now().isoformat()}.png"
-        plot_fitness_path = plotter.plot_fitness_evolution(
-            stats_raw['best_fitness_history'], 
-            stats_raw['average_fitness_history'],
-            filename=plot_fitness_filename
-        )
-        if plot_fitness_path:
-            vis_urls["fitness_evolution_plot"] = f"{base_url}static/{plot_fitness_filename}"
+        # Extract data dari request
+        user_location = (request.latitude, request.longitude)
+        num_routes = request.num_routes
         
-        # Plot 2: Distance Evolution
-        plot_distance_filename = f"distance_evolution_{datetime.now().isoformat()}.png"
-        plot_distance_path = plotter.plot_distance_evolution(
-            stats_raw['best_fitness_history'], 
-            stats_raw['average_fitness_history'],
-            filename=plot_distance_filename
+        # Inisialisasi HGA dengan konfigurasi dari request atau default
+        hga_config = request.hga_config or HGAConfig()
+        
+        hga = HybridGeneticAlgorithm(
+            population_size=hga_config.population_size,
+            generations=hga_config.generations,
+            crossover_rate=hga_config.crossover_rate,
+            mutation_rate=hga_config.mutation_rate,
+            elitism_count=hga_config.elitism_count,
+            tournament_size=hga_config.tournament_size,
+            use_2opt=hga_config.use_2opt,
+            two_opt_iterations=hga_config.two_opt_iterations
         )
-        if plot_distance_path:
-            vis_urls["distance_evolution_plot"] = f"{base_url}static/{plot_distance_filename}"
-
-        # Plot 3: Statistics Summary
-        plot_stats_filename = f"statistics_summary_{datetime.now().isoformat()}.png"
-        plot_stats_path = plotter.plot_statistics_summary(
-            stats_raw, # Kirim semua statistik mentah
-            filename=plot_stats_filename
+        
+        print(f"\nProcessing request for location: {user_location}")
+        print(f"HGA Config - Pop: {hga_config.population_size}, Gen: {hga_config.generations}, "
+              f"2-Opt: {hga_config.use_2opt} ({hga_config.two_opt_iterations} iter)")
+        
+        # Jalankan HGA
+        best_chromosomes = hga.run(
+            destinations=destinations,
+            start_point=user_location,
+            num_solutions=num_routes
         )
-        if plot_stats_path:
-            vis_urls["statistics_summary_plot"] = f"{base_url}static/{plot_stats_filename}"
-
-        # Plot 4: Convergence Analysis (Improvement Rate)
-        plot_analysis_filename = f"convergence_analysis_{datetime.now().isoformat()}.png"
-        plot_analysis_path = plotter.plot_convergence_analysis(
-            stats_raw['best_fitness_history'],
-            filename=plot_analysis_filename
+        
+        # Format hasil
+        recommendations = []
+        for i, chromosome in enumerate(best_chromosomes):
+            route = Route(user_location, chromosome.genes)
+            route_info = route.get_route_summary()
+            route_info['rank'] = i + 1
+            route_info['fitness'] = chromosome.get_fitness()
+            recommendations.append(route_info)
+        
+        # Get statistics
+        stats = hga.get_evolution_statistics()
+        
+        # Response
+        response_data = {
+            "user_location": {
+                "latitude": user_location[0],
+                "longitude": user_location[1]
+            },
+            "hga_config": {
+                "population_size": hga_config.population_size,
+                "generations": hga_config.generations,
+                "crossover_rate": hga_config.crossover_rate,
+                "mutation_rate": hga_config.mutation_rate,
+                "elitism_count": hga_config.elitism_count,
+                "tournament_size": hga_config.tournament_size,
+                "use_2opt": hga_config.use_2opt,
+                "two_opt_iterations": hga_config.two_opt_iterations
+            },
+            "statistics": {
+                "total_generations": stats['total_generations'],
+                "best_distance_km": stats['best_distance'],
+                "initial_fitness": stats['best_fitness_history'][0],
+                "final_fitness": stats['best_fitness_history'][-1],
+                "improvement_percentage": (
+                    (stats['best_fitness_history'][-1] - stats['best_fitness_history'][0]) 
+                    / stats['best_fitness_history'][0] * 100
+                )
+            },
+            "routes": recommendations
+        }
+        
+        print(f"Successfully generated {len(recommendations)} routes")
+        print(f"Best route distance: {stats['best_distance']:.2f} km\n")
+        
+        return RouteRecommendationResponse(
+            success=True,
+            message=f"Successfully generated {len(recommendations)} route recommendations",
+            data=response_data,
+            timestamp=datetime.now().isoformat()
         )
-        if plot_analysis_path:
-            vis_urls["convergence_analysis_plot"] = f"{base_url}static/{plot_analysis_filename}"
-        # --- SELESAI TAMBAHAN ---
-
+        
     except Exception as e:
-        print(f"Error saat membuat plot: {e}")
-        vis_urls["plots_error"] = f"Error: {e}"
-
-    # 6. Bersihkan statistik
-    stats_clean = stats_raw.copy()
-    stats_clean.pop('best_solution', None)
-    
-    # 7. Kembalikan respons
-    return RecommendationResponse(
-        message="Rekomendasi rute berhasil dibuat.",
-        user_location=user_location,
-        recommendations=recommendations,
-        statistics=stats_clean, 
-        visualization_urls=vis_urls
-    )
+        print(f"Error processing request: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating route recommendations: {str(e)}"
+        )
+@router.get("/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint"""
+    osrm_stats = get_osrm_cache_stats()
+    return {
+        "status": "healthy",
+        "destinations_loaded": destinations is not None,
+        "total_destinations": len(destinations) if destinations else 0,
+        "osrm_enabled": osrm_stats['osrm_enabled'],
+        "osrm_cache_size": osrm_stats['cache_size'],
+        "timestamp": datetime.now().isoformat()
+    }

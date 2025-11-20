@@ -5,7 +5,7 @@ import sqlite3
 from typing import List, Dict, Optional
 from contextlib import contextmanager
 
-DB_PATH = "./api/data_wisata_surabaya.db"
+DB_PATH = "./data/data_wisata_surabaya.db"
 
 @contextmanager
 def get_db_connection(db_path: str = DB_PATH):
