@@ -5,8 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 # Impor dari modul lokal
-from system import TourismRouteRecommendationSystem
-from api.config import OUTPUT_DIR, DATA_FILE_PATH
+from api.config import OUTPUT_DIR, DB_FILE_PATH
 from api.endpoints import router as api_router, initialize_system
 
 @asynccontextmanager
@@ -17,21 +16,27 @@ async def lifespan(app: FastAPI):
     # 1. Pastikan direktori output ada
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     print(f"Direktori output di: {os.path.abspath(OUTPUT_DIR)}")
-    
-    # 2. Load destinations dari SQLite (dipanggil dari endpoints.py)
-    print("Memuat data destinasi dari SQLite...")
+    print(f"Mencari database di: {os.path.abspath(DB_FILE_PATH)}")
+
+    # 2. Inisialisasi destinations untuk endpoints
+    print("\n=== Initializing Destinations from SQLite ===")
     try:
         initialize_system()
-        print("Destinasi berhasil dimuat dari database.")
+        print("✓ Destinations initialized successfully for API endpoints")
     except Exception as e:
-        print(f"FATAL ERROR: Gagal memuat data destinasi: {e}")
+        print(f"✗ FATAL ERROR: Failed to initialize destinations")
+        print(f"✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
         raise e
+    
+    print("\n✓✓✓ Server startup completed successfully! ✓✓✓\n")
         
     yield
     
     # --- Perintah saat Shutdown Server ---
     print("Server FastAPI sedang berhenti...")
-    print("Cleanup selesai.")
+    print("Sistem dibersihkan.")
 
 
 # --- Inisialisasi Aplikasi FastAPI ---
@@ -59,9 +64,7 @@ def root():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        '*'
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

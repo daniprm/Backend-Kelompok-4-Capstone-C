@@ -1,11 +1,14 @@
 """
 Database utility functions untuk mengakses data wisata dari SQLite
 """
+import os
 import sqlite3
 from typing import List, Dict, Optional
 from contextlib import contextmanager
 
-DB_PATH = "./data/data_wisata_surabaya.db"
+# Get absolute path to database file
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(PROJECT_ROOT, "data", "data_wisata_surabaya.db")
 
 @contextmanager
 def get_db_connection(db_path: str = DB_PATH):

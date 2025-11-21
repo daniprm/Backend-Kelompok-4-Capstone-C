@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 from fastapi import APIRouter, HTTPException, Request, Query, FastAPI
-from system import TourismRouteRecommendationSystem
 from visualization.map_plotter import RouteMapPlotter
 from visualization.convergence_plotter import ConvergencePlotter
 from api.schemas import *
@@ -21,23 +20,16 @@ router = APIRouter()
 destinations = None
 
 def initialize_system():
-    """Load destinations data on startup from SQLite database"""
+    """Load destinations data on startup"""
     global destinations
     if destinations is None:
         print("Loading destinations data from SQLite...")
         try:
             destinations = load_destinations_from_sqlite()
-            print(f"Successfully loaded {len(destinations)} destinations from database")
+            print(f"Successfully loaded {len(destinations)} destinations")
         except Exception as e:
-            print(f"ERROR loading destinations from SQLite: {e}")
-            print("Attempting to load from CSV as fallback...")
-            try:
-                from utils.data_loader import load_destinations_from_csv
-                destinations = load_destinations_from_csv("./data/data_wisata_sby.csv")
-                print(f"Successfully loaded {len(destinations)} destinations from CSV")
-            except Exception as csv_error:
-                print(f"ERROR loading from CSV: {csv_error}")
-                raise Exception("Failed to load destinations from both SQLite and CSV")
+            print(f"ERROR loading destinations: {e}")
+            raise
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
