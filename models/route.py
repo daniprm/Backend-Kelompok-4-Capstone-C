@@ -109,9 +109,14 @@ class Route:
             'destinations': [
                 {
                     'order': i + 1,
-                    'nama': dest.nama,
+                    'place_id': dest.place_id,
+                    'nama_destinasi': dest.nama,
                     'kategori': dest.kategori,
-                    'coordinates': (dest.latitude, dest.longitude)
+                    'latitude': dest.latitude,
+                    'longitude': dest.longitude,
+                    'alamat': dest.alamat,
+                    'image_url': dest.image_url,
+                    'deskripsi': dest.deskripsi
                 }
                 for i, dest in enumerate(self.destinations)
             ],

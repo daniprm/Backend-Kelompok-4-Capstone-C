@@ -36,7 +36,7 @@ def initialize_system():
     global destinations
     if destinations is None:
         print("Loading destinations data...")
-        destinations = load_destinations_from_csv("./data/data_wisata_sby2.csv")
+        destinations = load_destinations_from_csv("./data/data_wisata.jsonl")
         print(f"Successfully loaded {len(destinations)} destinations")
 
 @asynccontextmanager
@@ -157,9 +157,14 @@ class RouteRecommendationRequest(BaseModel):
 
 class DestinationInfo(BaseModel):
     order: int
-    nama: str
+    place_id: Optional[int] = None
+    nama_destinasi: str
     kategori: List[str]
-    coordinates: List[float]
+    latitude: float
+    longitude: float
+    alamat: Optional[str] = None
+    image_url: Optional[str] = None
+    deskripsi: Optional[str] = None
 
 class RouteInfo(BaseModel):
     rank: int
@@ -320,12 +325,14 @@ async def get_destinations():
     destinations_list = []
     for dest in destinations:
         destinations_list.append({
-            "nama": dest.nama,
+            "place_id": dest.place_id,
+            "nama_destinasi": dest.nama,
             "kategori": dest.kategori,
-            "coordinates": {
-                "latitude": dest.latitude,
-                "longitude": dest.longitude
-            }
+            "latitude": dest.latitude,
+            "longitude": dest.longitude,
+            "alamat": dest.alamat,
+            "image_url": dest.image_url,
+            "deskripsi": dest.deskripsi
         })
     
     return {

@@ -1,16 +1,16 @@
 """
 Utility functions untuk memuat dan memproses data destinasi wisata
 """
-import csv
+import json
 from typing import List, Dict
 from models.destination import Destination
 
 def load_destinations_from_csv(filepath: str) -> List[Destination]:
     """
-    Memuat data destinasi wisata dari file CSV
+    Memuat data destinasi wisata dari file JSONL
     
     Args:
-        filepath: Path ke file CSV
+        filepath: Path ke file JSONL
         
     Returns:
         List of Destination objects
@@ -18,28 +18,43 @@ def load_destinations_from_csv(filepath: str) -> List[Destination]:
     destinations = []
     
     with open(filepath, 'r', encoding='utf-8') as file:
-        csv_reader = csv.DictReader(file)
-        
-        for row in csv_reader:
+        for line in file:
             try:
+                # Parse JSON dari setiap baris
+                data = json.loads(line.strip())
+                
                 # Parse kategori (bisa multiple, dipisahkan koma)
-                kategori_str = row['kategori'].strip()
+                kategori_str = data['kategori'].strip()
                 kategori_list = [k.strip() for k in kategori_str.split(',')]
                 
-                # Parse koordinat (handle format dengan koma sebagai desimal separator)
-                lat_str = row['latitude'].replace(',', '.')
-                lon_str = row['longitude'].replace(',', '.')
+                # Parse koordinat (handle format string dengan koma sebagai desimal separator)
+                lat_str = str(data['latitude']).replace(',', '.')
+                lon_str = str(data['longitude']).replace(',', '.')
+                latitude = float(lat_str)
+                longitude = float(lon_str)
+                
+                # Parse place_id
+                place_id = data.get('place_id')
                 
                 # Parse optional fields (alamat, image_url, deskripsi)
-                alamat = row.get('alamat', '').strip() if row.get('alamat') else None
-                image_url = row.get('image_url', '').strip() if row.get('image_url') else None
-                deskripsi = row.get('deskripsi', '').strip() if row.get('deskripsi') else None
+                alamat = data.get('alamat', '').strip() if data.get('alamat') else None
+                image_url = data.get('image_url', '').strip() if data.get('image_url') else None
+                deskripsi = data.get('deskripsi', '').strip() if data.get('deskripsi') else None
+                
+                # Set None jika string kosong atau 'null'
+                if alamat == '':
+                    alamat = None
+                if image_url == '':
+                    image_url = None
+                if deskripsi == '' or deskripsi == 'null':
+                    deskripsi = None
                 
                 destination = Destination(
-                    nama=row['nama_destinasi'].strip(),
+                    nama=data['nama_destinasi'].strip(),
                     kategori=kategori_list,
-                    latitude=float(lat_str),
-                    longitude=float(lon_str),
+                    latitude=latitude,
+                    longitude=longitude,
+                    place_id=place_id,
                     alamat=alamat,
                     image_url=image_url,
                     deskripsi=deskripsi
@@ -47,8 +62,8 @@ def load_destinations_from_csv(filepath: str) -> List[Destination]:
                 
                 destinations.append(destination)
                 
-            except (ValueError, KeyError) as e:
-                print(f"Error parsing row {row}: {e}")
+            except (ValueError, KeyError, json.JSONDecodeError) as e:
+                print(f"Error parsing line: {e}")
                 continue
     
     return destinations
