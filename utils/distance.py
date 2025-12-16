@@ -290,3 +290,107 @@ def set_osrm_profile(profile: str):
     OSRM_PROFILE = profile
     # Clear cache karena profil berbeda akan menghasilkan jarak berbeda
     clear_osrm_cache()
+
+
+def recalculate_route_with_osrm(start_point, destinations):
+    """
+    Rekalkulasi total distance dan duration untuk seluruh rute menggunakan OSRM route API
+    
+    Args:
+        start_point: Tuple (latitude, longitude) titik awal
+        destinations: List of Destination objects yang akan dikunjungi
+    
+    Returns:
+        Dictionary dengan format:
+        {
+            'success': bool,
+            'total_distance_km': float,
+            'total_duration_minutes': float,
+            'total_duration_hours': float,
+            'geometry': str (polyline encoded),
+            'error': str (jika gagal)
+        }
+    """
+    if not USE_OSRM:
+        return {
+            'success': False,
+            'error': 'OSRM is disabled'
+        }
+    
+    if not destinations:
+        return {
+            'success': True,
+            'total_distance_km': 0.0,
+            'total_duration_minutes': 0.0,
+            'total_duration_hours': 0.0,
+            'geometry': None
+        }
+    
+    try:
+        # Build coordinates string: start_point -> dest1 -> dest2 -> ... -> destN
+        coordinates = []
+        
+        # Add start point
+        coordinates.append(f"{start_point[1]},{start_point[0]}")  # lon,lat format for OSRM
+        
+        # Add all destinations
+        for dest in destinations:
+            coordinates.append(f"{dest.longitude},{dest.latitude}")
+        
+        # Build OSRM route request URL
+        coords_string = ";".join(coordinates)
+        url = f"{OSRM_BASE_URL}/route/v1/{OSRM_PROFILE}/{coords_string}"
+        
+        # Parameters: overview=full untuk mendapatkan geometry lengkap
+        params = {
+            'overview': 'full',
+            'geometries': 'polyline',
+            'steps': 'false'
+        }
+        
+        # Make request to OSRM
+        response = requests.get(url, params=params, timeout=OSRM_TIMEOUT)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if data.get('code') != 'Ok':
+            return {
+                'success': False,
+                'error': f"OSRM returned code: {data.get('code')}"
+            }
+        
+        # Extract route information
+        route = data['routes'][0]
+        total_distance_meters = route['distance']  # in meters
+        total_duration_seconds = route['duration']  # in seconds
+        geometry = route.get('geometry', None)
+        
+        # Convert to desired units
+        total_distance_km = total_distance_meters / 1000.0
+        total_duration_minutes = total_duration_seconds / 60.0
+        total_duration_hours = total_duration_minutes / 60.0
+        
+        return {
+            'success': True,
+            'total_distance_km': round(total_distance_km, 2),
+            'total_duration_minutes': round(total_duration_minutes, 1),
+            'total_duration_hours': round(total_duration_hours, 2),
+            'geometry': geometry
+        }
+        
+    except requests.exceptions.Timeout:
+        return {
+            'success': False,
+            'error': 'OSRM request timeout'
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            'success': False,
+            'error': f'OSRM request failed: {str(e)}'
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'Unexpected error: {str(e)}'
+        }
