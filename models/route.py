@@ -4,6 +4,7 @@ Model untuk representasi rute wisata
 from typing import List, Tuple
 from models.destination import Destination
 from utils.distance import calculate_distance
+from utils.travel_time_matrix import get_travel_time
 
 class Route:
     """
@@ -65,6 +66,37 @@ class Route:
         
         return total_distance
     
+    def calculate_total_travel_time(self) -> float:
+        """
+        Menghitung total waktu tempuh rute menggunakan travel time matrix
+        
+        Returns:
+            Total waktu tempuh dalam menit
+        """
+        if not self.destinations:
+            return 0.0
+        
+        total_time = 0.0
+        
+        # Waktu tempuh dari titik awal ke destinasi pertama
+        time_to_first = get_travel_time(
+            self.start_point,
+            (self.destinations[0].latitude, self.destinations[0].longitude)
+        )
+        if time_to_first is not None:
+            total_time += time_to_first
+        
+        # Waktu tempuh antar destinasi
+        for i in range(len(self.destinations) - 1):
+            coord1 = (self.destinations[i].latitude, self.destinations[i].longitude)
+            coord2 = (self.destinations[i + 1].latitude, self.destinations[i + 1].longitude)
+            
+            travel_time = get_travel_time(coord1, coord2)
+            if travel_time is not None:
+                total_time += travel_time
+        
+        return total_time
+    
     def is_valid_route_order(self) -> bool:
         """
         Memvalidasi apakah urutan rute sesuai dengan pola: K1, C1, W1, K2, W2, C2, K3, O
@@ -101,17 +133,31 @@ class Route:
         Returns:
             Dictionary berisi informasi rute
         """
+        from utils.penalty import get_constraint_violation_info
+        
+        total_distance = self.calculate_total_distance()
+        total_time = self.calculate_total_travel_time()
+        constraint_info = get_constraint_violation_info(total_distance, total_time)
+        
         return {
             'start_point': self.start_point,
             # 'end_point': self.end_point,
             'total_destinations': len(self.destinations),
-            'total_distance_km': round(self.calculate_total_distance(), 2),
+            'total_distance_km': round(total_distance, 2),
+            'total_travel_time_minutes': round(total_time, 2),
+            'total_travel_time_hours': round(total_time / 60, 2),
+            'constraint_info': constraint_info,
             'destinations': [
                 {
                     'order': i + 1,
-                    'nama': dest.nama,
+                    'place_id': dest.place_id,
+                    'nama_destinasi': dest.nama,
                     'kategori': dest.kategori,
-                    'coordinates': (dest.latitude, dest.longitude)
+                    'latitude': dest.latitude,
+                    'longitude': dest.longitude,
+                    'alamat': dest.alamat,
+                    'image_url': dest.image_url,
+                    'deskripsi': dest.deskripsi
                 }
                 for i, dest in enumerate(self.destinations)
             ],

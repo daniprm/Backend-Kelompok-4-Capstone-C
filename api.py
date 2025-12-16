@@ -12,7 +12,7 @@ from datetime import datetime
 
 from algorithms.hga import HybridGeneticAlgorithm
 from utils.data_loader import load_destinations_from_csv
-from utils.distance import get_osrm_cache_stats, clear_osrm_cache, set_use_osrm, set_osrm_profile
+from utils.distance import get_osrm_cache_stats, clear_osrm_cache, set_use_osrm, set_osrm_profile, recalculate_route_with_osrm
 from models.route import Route
 
 # Default HGA Configuration (sesuai dengan Main.py)
@@ -36,8 +36,42 @@ def initialize_system():
     global destinations
     if destinations is None:
         print("Loading destinations data...")
-        destinations = load_destinations_from_csv("./data/data_wisata_sby2.csv")
+        destinations = load_destinations_from_csv("./data/data_wisata.jsonl")
         print(f"Successfully loaded {len(destinations)} destinations")
+
+def generate_google_maps_url(start_point, destinations_list):
+    """
+    Generate Google Maps URL untuk navigasi rute
+    
+    Args:
+        start_point: Tuple (latitude, longitude) titik awal
+        destinations_list: List of Destination objects
+    
+    Returns:
+        String URL Google Maps untuk navigasi
+    
+    Format URL: https://www.google.com/maps/dir/start/dest1/dest2/.../destN
+    """
+    base_url = "https://www.google.com/maps/dir"
+    
+    # Build waypoints list
+    waypoints = []
+    
+    # Add start point
+    waypoints.append(f"'{start_point[0]},{start_point[1]}'")
+    
+    # Add all destinations
+    for dest in destinations_list:
+        waypoints.append(f"{dest.latitude},+{dest.longitude}")
+    
+    # Join waypoints with /
+    waypoints_str = "/".join(waypoints)
+    
+    # Add travel mode parameter (9 = motorcycle/driving)
+    # Reference: https://developers.google.com/maps/documentation/urls/get-started
+    url = f"{base_url}/{waypoints_str}?entry=ttu&travelmode=two-wheeler"
+    
+    return url
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -157,9 +191,14 @@ class RouteRecommendationRequest(BaseModel):
 
 class DestinationInfo(BaseModel):
     order: int
-    nama: str
+    place_id: Optional[int] = None
+    nama_destinasi: str
     kategori: List[str]
-    coordinates: List[float]
+    latitude: float
+    longitude: float
+    alamat: Optional[str] = None
+    image_url: Optional[str] = None
+    deskripsi: Optional[str] = None
 
 class RouteInfo(BaseModel):
     rank: int
@@ -257,7 +296,58 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
             route_info = route.get_route_summary()
             route_info['rank'] = i + 1
             route_info['fitness'] = chromosome.get_fitness()
+            
+            # Generate Google Maps URL untuk navigasi
+            google_maps_url = generate_google_maps_url(user_location, chromosome.genes)
+            route_info['google_maps_url'] = google_maps_url
+            
+            # Rekalkulasi dengan OSRM untuk data real sebelum dikirim ke client
+            osrm_data = recalculate_route_with_osrm(user_location, chromosome.genes)
+            if osrm_data['success']:
+                # Update dengan data OSRM yang lebih akurat
+                route_info['total_distance_km'] = osrm_data['total_distance_km']
+                route_info['total_travel_time_minutes'] = osrm_data['total_duration_minutes']
+                route_info['total_travel_time_hours'] = osrm_data['total_duration_hours']
+                route_info['osrm_recalculated'] = True
+                route_info['osrm_route_geometry'] = osrm_data.get('geometry')  # Polyline untuk map
+                
+                # Update constraint info dengan data OSRM
+                if 'constraint_info' in route_info:
+                    # Recalculate constraint info dengan data OSRM
+                    from utils.penalty import calculate_distance_penalty, calculate_time_penalty, calculate_total_penalty
+                    
+                    distance_km = osrm_data['total_distance_km']
+                    time_minutes = osrm_data['total_duration_minutes']
+                    distance_violated = distance_km > 20.0
+                    time_violated = time_minutes > 300.0
+                    
+                    route_info['constraint_info']['distance']['value'] = round(distance_km, 2)
+                    route_info['constraint_info']['distance']['violated'] = distance_violated
+                    route_info['constraint_info']['distance']['excess'] = round(max(0, distance_km - 20.0), 2)
+                    route_info['constraint_info']['distance']['penalty'] = round(calculate_distance_penalty(distance_km), 6)
+                    
+                    route_info['constraint_info']['time']['value_minutes'] = round(time_minutes, 2)
+                    route_info['constraint_info']['time']['value_hours'] = round(time_minutes / 60, 2)
+                    route_info['constraint_info']['time']['violated'] = time_violated
+                    route_info['constraint_info']['time']['excess_minutes'] = round(max(0, time_minutes - 300.0), 2)
+                    route_info['constraint_info']['time']['penalty'] = round(calculate_time_penalty(time_minutes), 6)
+                    
+                    route_info['constraint_info']['total_penalty'] = round(calculate_total_penalty(distance_km, time_minutes), 6)
+                    route_info['constraint_info']['is_feasible'] = not distance_violated and not time_violated
+            else:
+                # Jika OSRM gagal, tandai dengan flag
+                route_info['osrm_recalculated'] = False
+                route_info['osrm_error'] = osrm_data.get('error', 'Unknown error')
+            
             recommendations.append(route_info)
+        
+        # Sorting routes berdasarkan jarak OSRM (terpendek ke terpanjang)
+        # Hanya sorting jika recalculate OSRM berhasil
+        recommendations.sort(key=lambda x: x.get('total_distance_km', float('inf')))
+        
+        # Update rank setelah sorting
+        for i, route in enumerate(recommendations):
+            route['rank'] = i + 1
         
         # Get statistics
         stats = hga.get_evolution_statistics()
@@ -320,12 +410,14 @@ async def get_destinations():
     destinations_list = []
     for dest in destinations:
         destinations_list.append({
-            "nama": dest.nama,
+            "place_id": dest.place_id,
+            "nama_destinasi": dest.nama,
             "kategori": dest.kategori,
-            "coordinates": {
-                "latitude": dest.latitude,
-                "longitude": dest.longitude
-            }
+            "latitude": dest.latitude,
+            "longitude": dest.longitude,
+            "alamat": dest.alamat,
+            "image_url": dest.image_url,
+            "deskripsi": dest.deskripsi
         })
     
     return {
@@ -395,7 +487,7 @@ async def toggle_osrm(enable: bool = True):
     }
 
 @app.post("/api/osrm/set-profile", tags=["OSRM"])
-async def set_profile(profile: str = "driving"):
+async def set_profile(profile: str = "bike"):
     """
     Set OSRM transportation profile
     

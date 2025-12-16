@@ -13,12 +13,12 @@ class TourismRouteRecommendationSystem:
     Sistem Rekomendasi Rute Wisata menggunakan HGA
     """
     
-    def __init__(self, data_file: str = "./data/data_wisata_sby2.csv"):
+    def __init__(self, data_file: str = "./data/data_wisata.jsonl"):
         """
         Inisialisasi sistem
         
         Args:
-            data_file: Path ke file CSV data destinasi
+            data_file: Path ke file JSONL data destinasi
         """
         self.data_file = data_file
         self.destinations = None
@@ -115,9 +115,11 @@ class TourismRouteRecommendationSystem:
         for dest in route_info['destinations']:
             idx = dest['order'] - 1
             label = labels[idx] if idx < len(labels) else '?'
-            print(f"{dest['order']}. [{label}] {dest['nama']}")
+            print(f"{dest['order']}. [{label}] {dest['nama_destinasi']}")
             print(f"   Kategori: {', '.join(dest['kategori'])}")
-            print(f"   Koordinat: ({dest['coordinates'][0]}, {dest['coordinates'][1]})")
+            print(f"   Koordinat: ({dest['latitude']}, {dest['longitude']})")
+            if dest.get('alamat'):
+                print(f"   Alamat: {dest['alamat']}")
             print()
 
 
@@ -132,7 +134,7 @@ def main():
     print()
     
     # Inisialisasi sistem
-    system = TourismRouteRecommendationSystem("./data/data_wisata_sby2.csv")
+    system = TourismRouteRecommendationSystem("./data/data_wisata.jsonl")
     
     # Load data
     system.load_data()

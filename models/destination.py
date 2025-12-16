@@ -10,6 +10,7 @@ class Destination:
     Class untuk merepresentasikan satu destinasi wisata
     
     Attributes:
+        place_id: ID unik destinasi
         nama: Nama destinasi wisata
         kategori: List kategori destinasi (makanan_berat, makanan_ringan, non_kuliner, oleh_oleh)
         latitude: Koordinat latitude
@@ -22,6 +23,7 @@ class Destination:
     kategori: List[str]
     latitude: float
     longitude: float
+    place_id: int = None
     alamat: str = None
     image_url: str = None
     deskripsi: str = None

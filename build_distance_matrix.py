@@ -12,8 +12,8 @@ def main():
     print()
     
     # Load destinations
-    print("📂 Loading destinations from CSV...")
-    destinations = load_destinations_from_csv("./data/data_wisata_sby2.csv")
+    print("📂 Loading destinations from JSONL...")
+    destinations = load_destinations_from_csv("./data/data_wisata.jsonl")
     print(f"✓ Loaded {len(destinations)} destinations")
     print()
     

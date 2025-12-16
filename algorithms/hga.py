@@ -77,7 +77,8 @@ class HybridGeneticAlgorithm:
             population.evaluate_fitness()
             
             best_initial = population.get_best_chromosome()
-            print(f"Populasi awal - Best distance: {best_initial.get_total_distance():.2f} km\n")
+            print(f"Populasi awal - Best distance: {best_initial.get_total_distance():.2f} km, "
+                  f"Time: {best_initial.get_total_travel_time():.1f} min\n")
             
             # 2. Evolusi melalui generasi
             print("Tahap 2: Evolusi melalui generasi...")
@@ -96,8 +97,9 @@ class HybridGeneticAlgorithm:
                 
                 # Print progress setiap 20 generasi
                 if generation % 20 == 0:
+                    feasible_str = "✓" if current_best.is_feasible() else "✗"
                     print(f"Gen {generation:3d} - Best: {current_best.get_total_distance():.2f} km, "
-                        f"Avg: {1/population.get_average_fitness():.2f} km")
+                          f"Time: {current_best.get_total_travel_time():.1f} min [{feasible_str}]")
                 
                 # 9. Cek konvergensi
                 if self._check_convergence(generation):
@@ -110,7 +112,9 @@ class HybridGeneticAlgorithm:
                 population = new_population
 
             print(f"\n=== HGA ke-{numRoute + 1} Selesai ===")
-            print(f"Solusi terbaik: {self.best_solution.get_total_distance():.2f} km\n")
+            feasible_status = "FEASIBLE" if self.best_solution.is_feasible() else "INFEASIBLE"
+            print(f"Solusi terbaik: {self.best_solution.get_total_distance():.2f} km, "
+                  f"Waktu: {self.best_solution.get_total_travel_time():.1f} min [{feasible_status}]\n")
             
             # Simpan final population untuk visualisasi
             population.evaluate_fitness()
