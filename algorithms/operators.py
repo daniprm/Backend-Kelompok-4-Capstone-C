@@ -12,7 +12,7 @@ class GAOperators:
     
     @staticmethod
     def tournament_selection(population: List[Chromosome], 
-                            tournament_size: int = 3) -> Chromosome:
+                            tournament_size: int = 8) -> Chromosome:
         """
         Seleksi menggunakan metode tournament
         

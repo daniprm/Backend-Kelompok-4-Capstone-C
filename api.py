@@ -17,12 +17,12 @@ from models.route import Route
 
 # Default HGA Configuration (sesuai dengan Main.py)
 DEFAULT_HGA_CONFIG = {
-    "population_size": 600,
-    "generations": 40,
-    "crossover_rate": 0.8,
-    "mutation_rate": 0.05,
-    "elitism_count": 2,
-    "tournament_size": 8,
+    "population_size": 700,
+    "generations": 700,
+    "crossover_rate": 0.9,
+    "mutation_rate": 0.2,
+    "elitism_count": 5,
+    "tournament_size": 3,
     "use_2opt": True,
     "two_opt_iterations": 100
 }

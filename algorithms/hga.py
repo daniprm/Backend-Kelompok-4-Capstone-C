@@ -74,6 +74,13 @@ class HybridGeneticAlgorithm:
                 destinations,
                 start_point,
             )
+            
+            # # Validasi populasi awal - pastikan tidak ada duplikat
+            # for i, chrom in enumerate(population.chromosomes):
+            #     if chrom.has_duplicate_destinations():
+            #         place_ids = [gene.place_id for gene in chrom.genes]
+            #         print(f"WARNING: Kromosom {i} dalam populasi awal memiliki duplikat place_ids: {place_ids}")
+            
             population.evaluate_fitness()
             
             best_initial = population.get_best_chromosome()
@@ -107,8 +114,8 @@ class HybridGeneticAlgorithm:
                     break
                 
                 # 8. Generasi populasi baru
-                new_population = self._create_new_generation(population)
-                # new_population = self._create_new_generation_modified(population, destinations, start_point)
+                # new_population = self._create_new_generation(population)
+                new_population = self._create_new_generation_modified(population, destinations, start_point)
                 population = new_population
 
             print(f"\n=== HGA ke-{numRoute + 1} Selesai ===")
@@ -121,69 +128,95 @@ class HybridGeneticAlgorithm:
             population.sort_by_fitness()
             self.final_population = population
             
+            # # Final validation - pastikan best_solution tidak punya duplikat
+            # if self.best_solution and self.best_solution.has_duplicate_destinations():
+            #     place_ids = [gene.place_id for gene in self.best_solution.genes]
+            #     print(f"ERROR: Best solution has duplicate place_ids: {place_ids}")
+            #     print("Repairing solution...")
+                
+            #     # Repair solusi
+            #     self.best_solution = self.best_solution.repair_duplicates(destinations)
+            #     self.best_solution.calculate_fitness()
+                
+            #     if self.best_solution.has_duplicate_destinations():
+            #         print("WARNING: Repair failed, searching for alternative...")
+            #         # Cari solusi alternatif dari populasi
+            #         for chrom in population.chromosomes:
+            #             if not chrom.has_duplicate_destinations() and chrom.is_valid():
+            #                 self.best_solution = chrom.copy()
+            #                 print(f"Found valid alternative solution: {chrom.get_total_distance():.2f} km")
+            #                 break
+            #     else:
+            #         print(f"Solution repaired successfully: {self.best_solution.get_total_distance():.2f} km")
+            
             bestRoutes.append(self.best_solution)
         return bestRoutes
     
-    def _create_new_generation(self, population: Population) -> Population:
-        """
-        Membuat generasi baru menggunakan seleksi, crossover, mutasi, dan 2-opt
+    # def _create_new_generation(self, population: Population) -> Population:
+    #     """
+    #     Membuat generasi baru menggunakan seleksi, crossover, mutasi, dan 2-opt
         
-        Args:
-            population: Populasi saat ini
+    #     Args:
+    #         population: Populasi saat ini
             
-        Returns:
-            Populasi generasi baru
-        """
-        new_chromosomes = []
+    #     Returns:
+    #         Populasi generasi baru
+    #     """
+    #     new_chromosomes = []
         
-        # Elitism: Pertahankan individu terbaik
-        elite_chromosomes = population.get_best_n_chromosomes(self.elitism_count)
-        new_chromosomes.extend([c.copy() for c in elite_chromosomes])
+    #     # Elitism: Pertahankan individu terbaik
+    #     elite_chromosomes = population.get_best_n_chromosomes(self.elitism_count)
+    #     new_chromosomes.extend([c.copy() for c in elite_chromosomes])
         
-        # Generate offspring hingga populasi penuh
-        while len(new_chromosomes) < self.population_size:
-            # 4. Seleksi
-            parent1 = self.operators.tournament_selection(
-                population.chromosomes, 
-                self.tournament_size
-            )
-            parent2 = self.operators.tournament_selection(
-                population.chromosomes,
-                self.tournament_size
-            )
-            parent3 = self.operators.tournament_selection(
-                population.chromosomes,
-                self.tournament_size
-            )
-            parent4 = self.operators.tournament_selection(
-                population.chromosomes,
-                self.tournament_size
-            )
+    #     # Generate offspring hingga populasi penuh
+    #     while len(new_chromosomes) < self.population_size:
+    #         # 4. Seleksi
+    #         parent1 = self.operators.tournament_selection(
+    #             population.chromosomes, 
+    #             self.tournament_size
+    #         )
+    #         parent2 = self.operators.tournament_selection(
+    #             population.chromosomes,
+    #             self.tournament_size
+    #         )
+    #         parent3 = self.operators.tournament_selection(
+    #             population.chromosomes,
+    #             self.tournament_size
+    #         )
+    #         parent4 = self.operators.tournament_selection(
+    #             population.chromosomes,
+    #             self.tournament_size
+    #         )
 
-            # 5. Crossover
-            if random.random() < self.crossover_rate:
-                offspring1, offspring2 = self.operators.order_crossover_modified(parent1, parent2, parent3, parent4)
-            else:
-                offspring1, offspring2 = parent1.copy(), parent2.copy()
+    #         # 5. Crossover
+    #         if random.random() < self.crossover_rate:
+    #             offspring1, offspring2 = self.operators.order_crossover_modified(parent1, parent2, parent3, parent4)
+                
+    #             # Validasi offspring - jika ada duplikat, gunakan parent
+    #             if offspring1.has_duplicate_destinations():
+    #                 offspring1 = parent1.copy()
+    #             if offspring2.has_duplicate_destinations():
+    #                 offspring2 = parent2.copy()
+    #         else:
+    #             offspring1, offspring2 = parent1.copy(), parent2.copy()
             
             
-            # 6. Mutasi
-            offspring1 = self.operators.swap_mutation(offspring1, self.mutation_rate)
-            offspring2 = self.operators.swap_mutation(offspring2, self.mutation_rate)
+    #         # 6. Mutasi
+    #         offspring1 = self.operators.swap_mutation(offspring1, self.mutation_rate)
+    #         offspring2 = self.operators.swap_mutation(offspring2, self.mutation_rate)
             
-            # 7. Local search dengan 2-Opt
-            if self.use_2opt:
-                offspring1 = self.two_opt.optimize_with_constraints(offspring1)
-                offspring2 = self.two_opt.optimize_with_constraints(offspring2)
-            
-            new_chromosomes.append(offspring1)
-            if len(new_chromosomes) < self.population_size:
-                new_chromosomes.append(offspring2)
+    #         # 7. Local search dengan 2-Opt
+    #         if self.use_2opt:
+    #             offspring1 = self.two_opt.optimize_with_constraints(offspring1)
+    #             offspring2 = self.two_opt.optimize_with_constraints(offspring2)
+    #         new_chromosomes.append(offspring1)
+    #         if len(new_chromosomes) < self.population_size:
+    #             new_chromosomes.append(offspring2)
         
-        # Batasi ukuran populasi
-        new_chromosomes = new_chromosomes[:self.population_size]
+    #     # Batasi ukuran populasi
+    #     new_chromosomes = new_chromosomes[:self.population_size]
         
-        return Population(chromosomes=new_chromosomes, population_size=self.population_size)
+    #     return Population(chromosomes=new_chromosomes, population_size=self.population_size)
 
     def _create_new_generation_modified(self, population: Population, destinations: List[Destination], start_point: Tuple[float, float]) -> Population:
         """
@@ -197,7 +230,7 @@ class HybridGeneticAlgorithm:
         """
         new_chromosomes = []
 
-        # Elitism: Pertahankan individu terbaik
+        # Elitism: Pertahankan kromosom terbaik
         elite_chromosomes = population.get_best_n_chromosomes(self.elitism_count)
         new_chromosomes.extend([c.copy() for c in elite_chromosomes])
 
@@ -274,21 +307,6 @@ class HybridGeneticAlgorithm:
         
         return False
     
-    def get_evolution_statistics(self) -> Dict:
-        """
-        Mendapatkan statistik evolusi algoritma
-        
-        Returns:
-            Dictionary berisi statistik
-        """
-        return {
-            'total_generations': len(self.best_fitness_history),
-            'best_fitness_history': self.best_fitness_history,
-            'average_fitness_history': self.average_fitness_history,
-            'best_distance': self.best_solution.get_total_distance() if self.best_solution else None,
-            'best_solution': self.best_solution
-        }
-    
     def get_best_routes(self, num_routes: int = 3) -> List[Dict]:
         """
         Mendapatkan deskripsi detail dari rute-rute terbaik
@@ -322,3 +340,29 @@ class HybridGeneticAlgorithm:
             routes.append(route_info)
         
         return routes
+    
+    def get_evolution_statistics(self) -> Dict:
+        """
+        Mendapatkan statistik evolusi algoritma untuk analisis konvergensi
+        
+        Returns:
+            Dictionary berisi statistik evolusi
+        """
+        # Convert fitness history to distance history
+        # Since fitness = 1 / (1 + distance), we can recover distance
+        best_distance_history = []
+        for fitness in self.best_fitness_history:
+            if fitness > 0:
+                distance = (1 / fitness) - 1
+                best_distance_history.append(distance)
+            else:
+                best_distance_history.append(float('inf'))
+        
+        return {
+            'total_generations': len(self.best_fitness_history),
+            'best_fitness_history': self.best_fitness_history,
+            'average_fitness_history': self.average_fitness_history,
+            'best_distance_history': best_distance_history,
+            'best_distance': self.best_solution.get_total_distance() if self.best_solution else None,
+            'best_solution': self.best_solution
+        }

@@ -115,15 +115,15 @@ def get_constraint_violation_info(total_distance_km: float, total_time_minutes: 
     Returns:
         Dictionary berisi informasi pelanggaran constraint
     """
-    distance_violated = total_distance_km > MAX_ROUTE_DISTANCE_KM
+    distance_violated = total_distance_km > 24.0
     time_violated = total_time_minutes > MAX_ROUTE_TIME_MINUTES
     
     return {
         'distance': {
             'value': round(total_distance_km, 2),
-            'max_allowed': MAX_ROUTE_DISTANCE_KM,
+            'max_allowed': 25.0,
             'violated': distance_violated,
-            'excess': round(max(0, total_distance_km - MAX_ROUTE_DISTANCE_KM), 2),
+            'excess': round(max(0, total_distance_km - 25.0), 2),
             'penalty': round(calculate_distance_penalty(total_distance_km), 6)
         },
         'time': {

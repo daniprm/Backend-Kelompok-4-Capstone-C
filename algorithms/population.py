@@ -117,7 +117,6 @@ class Population:
         return Chromosome(
                 genes, 
                 start_point, 
-                # end_point
             )
     
     def evaluate_fitness(self):
