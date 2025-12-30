@@ -1,0 +1,63 @@
+================================================================================
+HYPERPARAMETER TUNING REPORT
+Hybrid Genetic Algorithm - Tourism Route Recommendation
+================================================================================
+
+SUMMARY STATISTICS
+--------------------------------------------------------------------------------
+Total configurations tested: 6912
+Runs per configuration: 3
+Total experiments: 20736
+
+Distance Range: 16.84 - 28.04 km
+Execution Time Range: 7.60 - 328.66 s
+Feasible Rate Range: 0.0% - 100.0%
+
+
+================================================================================
+BEST CONFIGURATION (Minimum Distance)
+================================================================================
+Population Size: 100
+Generations: 500
+Crossover Rate: 0.9
+Mutation Rate: 0.2
+Use 2-Opt: True
+
+Mean Distance: 16.84 ± 0.81 km
+Mean Execution Time: 34.60 ± 0.02 s
+Feasible Rate: 100.0%
+Mean Improvement: 71.1%
+Convergence Generation: 4
+
+
+================================================================================
+PARAMETER EFFECT ANALYSIS
+================================================================================
+
+POPULATION SIZE:
+   100: Distance=22.35km, Time=38.92s
+   300: Distance=22.82km, Time=111.40s
+   500: Distance=22.82km, Time=142.86s
+   700: Distance=22.69km, Time=108.25s
+
+GENERATIONS:
+  300: Distance=23.75km, Time=60.65s, Convergence=5
+  500: Distance=22.89km, Time=100.76s, Convergence=5
+  700: Distance=22.27km, Time=98.44s, Convergence=5
+  1000: Distance=21.76km, Time=141.59s, Convergence=5
+
+CROSSOVER RATE:
+  0.6: Distance=22.82km, Improvement=58.1%
+  0.7: Distance=22.69km, Improvement=58.2%
+  0.8: Distance=22.63km, Improvement=58.4%
+  0.9: Distance=22.53km, Improvement=58.8%
+
+MUTATION RATE:
+  0.01: Distance=22.70km, Improvement=58.5%
+  0.05: Distance=22.67km, Improvement=58.4%
+  0.20: Distance=22.70km, Improvement=58.2%
+  0.50: Distance=22.61km, Improvement=58.3%
+
+2-OPT:
+       With 2-Opt: Distance=22.67km, Time=100.36s
+    Without 2-Opt: Distance=nankm, Time=nans

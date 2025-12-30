@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from contextlib import asynccontextmanager
 import json
+import time
 from datetime import datetime
 
 from algorithms.hga import HybridGeneticAlgorithm
@@ -17,14 +18,14 @@ from models.route import Route
 
 # Default HGA Configuration (sesuai dengan Main.py)
 DEFAULT_HGA_CONFIG = {
-    "population_size": 700,
-    "generations": 700,
+    "population_size": 100,
+    "generations": 500,
     "crossover_rate": 0.9,
     "mutation_rate": 0.2,
-    "elitism_count": 5,
-    "tournament_size": 3,
+    "elitism_count": 10,
+    "tournament_size": 8,
     "use_2opt": True,
-    "two_opt_iterations": 100
+    "two_opt_iterations": 500
 }
 
 # Global variables untuk cache
@@ -242,6 +243,11 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
+# Konstanta untuk validasi rute
+MAX_ROUTE_DISTANCE_KM = 25.0  # Maksimal jarak rute yang valid
+MAX_HGA_RETRY_ATTEMPTS = 10   # Maksimal percobaan ulang HGA
+ROUTE_SEARCH_TIMEOUT_SECONDS = 60  # Timeout untuk pencarian rute (detik)
+
 @app.post("/generate-routes", response_model=RouteRecommendationResponse, tags=["Recommendations"])
 async def get_route_recommendations(request: RouteRecommendationRequest):
     """
@@ -251,6 +257,11 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
     - **longitude**: Longitude lokasi user (-180 sampai 180)
     - **num_routes**: Jumlah rute yang diinginkan (1-5, default: 3)
     - **hga_config**: Konfigurasi HGA (opsional)
+    
+    Mekanisme validasi:
+    - Setelah rute dihasilkan, dilakukan pengecekan ulang dengan OSRM
+    - Jika jarak > 25 km, rute ditolak dan HGA dijalankan ulang
+    - Proses berlanjut hingga mendapatkan sejumlah rute yang diminta
     """
     try:
         # Validasi destinations sudah dimuat
@@ -267,90 +278,170 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
         # Inisialisasi HGA dengan konfigurasi dari request atau default
         hga_config = request.hga_config or HGAConfig()
         
-        hga = HybridGeneticAlgorithm(
-            population_size=hga_config.population_size,
-            generations=hga_config.generations,
-            crossover_rate=hga_config.crossover_rate,
-            mutation_rate=hga_config.mutation_rate,
-            elitism_count=hga_config.elitism_count,
-            tournament_size=hga_config.tournament_size,
-            use_2opt=hga_config.use_2opt,
-            two_opt_iterations=hga_config.two_opt_iterations
-        )
-        
         print(f"\nProcessing request for location: {user_location}")
         print(f"HGA Config - Pop: {hga_config.population_size}, Gen: {hga_config.generations}, "
               f"2-Opt: {hga_config.use_2opt} ({hga_config.two_opt_iterations} iter)")
+        print(f"Target: {num_routes} routes with max distance {MAX_ROUTE_DISTANCE_KM} km")
         
-        # Jalankan HGA
-        best_chromosomes = hga.run(
-            destinations=destinations,
-            start_point=user_location,
-            num_solutions=num_routes
-        )
+        # List untuk menyimpan rute yang valid
+        valid_routes = []
+        # Set untuk menyimpan route signature (untuk menghindari duplikat)
+        seen_route_signatures = set()
+        # Counter untuk retry attempts
+        total_attempts = 0
+        # Statistik untuk response
+        all_stats = []
+        rejected_routes_count = 0
+        # Track waktu mulai untuk timeout
+        start_time = time.time()
+        timeout_reached = False
         
-        # Format hasil
-        recommendations = []
-        for i, chromosome in enumerate(best_chromosomes):
-            route = Route(user_location, chromosome.genes)
-            route_info = route.get_route_summary()
-            route_info['rank'] = i + 1
-            route_info['fitness'] = chromosome.get_fitness()
+        # Loop hingga mendapatkan jumlah rute yang diminta atau mencapai batas retry atau timeout
+        while len(valid_routes) < num_routes and total_attempts < MAX_HGA_RETRY_ATTEMPTS:
+            # Check timeout
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= ROUTE_SEARCH_TIMEOUT_SECONDS:
+                timeout_reached = True
+                print(f"\n⏱ Timeout reached: {elapsed_time:.2f}s >= {ROUTE_SEARCH_TIMEOUT_SECONDS}s")
+                break
+            total_attempts += 1
+            print(f"\n--- HGA Attempt {total_attempts} (Valid routes: {len(valid_routes)}/{num_routes}) ---")
             
-            # Generate Google Maps URL untuk navigasi
-            google_maps_url = generate_google_maps_url(user_location, chromosome.genes)
-            route_info['google_maps_url'] = google_maps_url
+            # Inisialisasi HGA baru untuk setiap attempt
+            hga = HybridGeneticAlgorithm(
+                population_size=hga_config.population_size,
+                generations=hga_config.generations,
+                crossover_rate=hga_config.crossover_rate,
+                mutation_rate=hga_config.mutation_rate,
+                elitism_count=hga_config.elitism_count,
+                tournament_size=hga_config.tournament_size,
+                use_2opt=hga_config.use_2opt,
+                two_opt_iterations=hga_config.two_opt_iterations
+            )
             
-            # Rekalkulasi dengan OSRM untuk data real sebelum dikirim ke client
-            osrm_data = recalculate_route_with_osrm(user_location, chromosome.genes)
-            if osrm_data['success']:
-                # Update dengan data OSRM yang lebih akurat
-                route_info['total_distance_km'] = osrm_data['total_distance_km']
-                route_info['total_travel_time_minutes'] = osrm_data['total_duration_minutes']
-                route_info['total_travel_time_hours'] = osrm_data['total_duration_hours']
-                route_info['osrm_recalculated'] = True
-                route_info['osrm_route_geometry'] = osrm_data.get('geometry')  # Polyline untuk map
+            # Jalankan HGA - minta lebih banyak solusi untuk meningkatkan peluang mendapat rute valid
+            candidates_needed = num_routes - len(valid_routes)
+            solutions_to_request = min(candidates_needed + 2, 5)  # Minta sedikit lebih banyak
+            
+            best_chromosomes = hga.run(
+                destinations=destinations,
+                start_point=user_location,
+                num_solutions=solutions_to_request
+            )
+            
+            # Simpan statistik
+            stats = hga.get_evolution_statistics()
+            all_stats.append(stats)
+            
+            # Proses setiap chromosome hasil HGA
+            for chromosome in best_chromosomes:
+                if len(valid_routes) >= num_routes:
+                    break
                 
-                # Update constraint info dengan data OSRM
-                if 'constraint_info' in route_info:
-                    # Recalculate constraint info dengan data OSRM
-                    from utils.penalty import calculate_distance_penalty, calculate_time_penalty, calculate_total_penalty
+                # Buat route signature untuk cek duplikat (berdasarkan urutan place_id)
+                route_signature = tuple(dest.place_id for dest in chromosome.genes)
+                if route_signature in seen_route_signatures:
+                    print(f"  Skipping duplicate route")
+                    continue
+                
+                # Rekalkulasi dengan OSRM untuk mendapatkan jarak real
+                osrm_data = recalculate_route_with_osrm(user_location, chromosome.genes)
+                
+                if osrm_data['success']:
+                    osrm_distance = osrm_data['total_distance_km']
                     
-                    distance_km = osrm_data['total_distance_km']
-                    time_minutes = osrm_data['total_duration_minutes']
-                    distance_violated = distance_km > 20.0
-                    time_violated = time_minutes > 300.0
+                    # Validasi jarak <= 25 km
+                    if osrm_distance <= MAX_ROUTE_DISTANCE_KM:
+                        print(f"  ✓ Valid route found: {osrm_distance:.2f} km")
+                        
+                        # Tandai route sebagai sudah dilihat
+                        seen_route_signatures.add(route_signature)
+                        
+                        # Buat route info
+                        route = Route(user_location, chromosome.genes)
+                        route_info = route.get_route_summary()
+                        route_info['fitness'] = chromosome.get_fitness()
+                        
+                        # Generate Google Maps URL untuk navigasi
+                        google_maps_url = generate_google_maps_url(user_location, chromosome.genes)
+                        route_info['google_maps_url'] = google_maps_url
+                        
+                        # Update dengan data OSRM yang lebih akurat
+                        route_info['total_distance_km'] = osrm_data['total_distance_km']
+                        route_info['total_travel_time_minutes'] = osrm_data['total_duration_minutes']
+                        route_info['total_travel_time_hours'] = osrm_data['total_duration_hours']
+                        route_info['osrm_recalculated'] = True
+                        route_info['osrm_route_geometry'] = osrm_data.get('geometry')
+                        
+                        # Update constraint info dengan data OSRM
+                        if 'constraint_info' in route_info:
+                            from utils.penalty import calculate_distance_penalty, calculate_time_penalty, calculate_total_penalty
+                            
+                            distance_km = osrm_data['total_distance_km']
+                            time_minutes = osrm_data['total_duration_minutes']
+                            distance_violated = distance_km > 20.0
+                            time_violated = time_minutes > 300.0
+                            
+                            route_info['constraint_info']['distance']['value'] = round(distance_km, 2)
+                            route_info['constraint_info']['distance']['violated'] = distance_violated
+                            route_info['constraint_info']['distance']['excess'] = round(max(0, distance_km - 20.0), 2)
+                            route_info['constraint_info']['distance']['penalty'] = round(calculate_distance_penalty(distance_km), 6)
+                            
+                            route_info['constraint_info']['time']['value_minutes'] = round(time_minutes, 2)
+                            route_info['constraint_info']['time']['value_hours'] = round(time_minutes / 60, 2)
+                            route_info['constraint_info']['time']['violated'] = time_violated
+                            route_info['constraint_info']['time']['excess_minutes'] = round(max(0, time_minutes - 300.0), 2)
+                            route_info['constraint_info']['time']['penalty'] = round(calculate_time_penalty(time_minutes), 6)
+                            
+                            route_info['constraint_info']['total_penalty'] = round(calculate_total_penalty(distance_km, time_minutes), 6)
+                            route_info['constraint_info']['is_feasible'] = not distance_violated and not time_violated
+                        
+                        valid_routes.append(route_info)
+                    else:
+                        print(f"  ✗ Route rejected: {osrm_distance:.2f} km > {MAX_ROUTE_DISTANCE_KM} km limit")
+                        rejected_routes_count += 1
+                else:
+                    # Jika OSRM gagal, tetap terima rute tapi tandai
+                    print(f"  ⚠ OSRM failed, accepting route with estimated distance")
+                    seen_route_signatures.add(route_signature)
                     
-                    route_info['constraint_info']['distance']['value'] = round(distance_km, 2)
-                    route_info['constraint_info']['distance']['violated'] = distance_violated
-                    route_info['constraint_info']['distance']['excess'] = round(max(0, distance_km - 20.0), 2)
-                    route_info['constraint_info']['distance']['penalty'] = round(calculate_distance_penalty(distance_km), 6)
+                    route = Route(user_location, chromosome.genes)
+                    route_info = route.get_route_summary()
+                    route_info['fitness'] = chromosome.get_fitness()
                     
-                    route_info['constraint_info']['time']['value_minutes'] = round(time_minutes, 2)
-                    route_info['constraint_info']['time']['value_hours'] = round(time_minutes / 60, 2)
-                    route_info['constraint_info']['time']['violated'] = time_violated
-                    route_info['constraint_info']['time']['excess_minutes'] = round(max(0, time_minutes - 300.0), 2)
-                    route_info['constraint_info']['time']['penalty'] = round(calculate_time_penalty(time_minutes), 6)
+                    google_maps_url = generate_google_maps_url(user_location, chromosome.genes)
+                    route_info['google_maps_url'] = google_maps_url
+                    route_info['osrm_recalculated'] = False
+                    route_info['osrm_error'] = osrm_data.get('error', 'Unknown error')
                     
-                    route_info['constraint_info']['total_penalty'] = round(calculate_total_penalty(distance_km, time_minutes), 6)
-                    route_info['constraint_info']['is_feasible'] = not distance_violated and not time_violated
+                    valid_routes.append(route_info)
+        
+        # Cek apakah berhasil mendapatkan cukup rute
+        elapsed_time = time.time() - start_time
+        
+        if len(valid_routes) == 0:
+            if timeout_reached:
+                raise HTTPException(
+                    status_code=408,  # Request Timeout
+                    detail=f"Timeout: Failed to find any valid routes within {MAX_ROUTE_DISTANCE_KM} km after {elapsed_time:.2f} seconds (timeout: {ROUTE_SEARCH_TIMEOUT_SECONDS}s)"
+                )
             else:
-                # Jika OSRM gagal, tandai dengan flag
-                route_info['osrm_recalculated'] = False
-                route_info['osrm_error'] = osrm_data.get('error', 'Unknown error')
-            
-            recommendations.append(route_info)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to find any valid routes within {MAX_ROUTE_DISTANCE_KM} km after {total_attempts} attempts"
+                )
+        
+        recommendations = valid_routes
         
         # Sorting routes berdasarkan jarak OSRM (terpendek ke terpanjang)
-        # Hanya sorting jika recalculate OSRM berhasil
         recommendations.sort(key=lambda x: x.get('total_distance_km', float('inf')))
         
         # Update rank setelah sorting
         for i, route in enumerate(recommendations):
             route['rank'] = i + 1
         
-        # Get statistics
-        stats = hga.get_evolution_statistics()
+        # Aggregate statistics dari semua HGA runs
+        final_stats = all_stats[-1] if all_stats else None
         
         # Response
         response_data = {
@@ -368,25 +459,45 @@ async def get_route_recommendations(request: RouteRecommendationRequest):
                 "use_2opt": hga_config.use_2opt,
                 "two_opt_iterations": hga_config.two_opt_iterations
             },
+            "route_validation": {
+                "max_distance_km": MAX_ROUTE_DISTANCE_KM,
+                "total_hga_attempts": total_attempts,
+                "rejected_routes_count": rejected_routes_count,
+                "valid_routes_found": len(recommendations),
+                "search_time_seconds": round(elapsed_time, 2),
+                "timeout_seconds": ROUTE_SEARCH_TIMEOUT_SECONDS,
+                "timeout_reached": timeout_reached
+            },
             "statistics": {
-                "total_generations": stats['total_generations'],
-                "best_distance_km": stats['best_distance'],
-                "initial_fitness": stats['best_fitness_history'][0],
-                "final_fitness": stats['best_fitness_history'][-1],
+                "total_generations": final_stats['total_generations'] if final_stats else 0,
+                "best_distance_km": final_stats['best_distance'] if final_stats else 0,
+                "initial_fitness": final_stats['best_fitness_history'][0] if final_stats else 0,
+                "final_fitness": final_stats['best_fitness_history'][-1] if final_stats else 0,
                 "improvement_percentage": (
-                    (stats['best_fitness_history'][-1] - stats['best_fitness_history'][0]) 
-                    / stats['best_fitness_history'][0] * 100
-                )
+                    (final_stats['best_fitness_history'][-1] - final_stats['best_fitness_history'][0]) 
+                    / final_stats['best_fitness_history'][0] * 100
+                ) if final_stats and final_stats['best_fitness_history'][0] != 0 else 0
             },
             "routes": recommendations
         }
         
-        print(f"Successfully generated {len(recommendations)} routes")
-        print(f"Best route distance: {stats['best_distance']:.2f} km\n")
+        print(f"\n=== Route Generation Summary ===")
+        print(f"Successfully generated {len(recommendations)} valid routes")
+        print(f"Total HGA attempts: {total_attempts}")
+        print(f"Search time: {elapsed_time:.2f}s / {ROUTE_SEARCH_TIMEOUT_SECONDS}s")
+        print(f"Rejected routes (>{MAX_ROUTE_DISTANCE_KM} km): {rejected_routes_count}")
+        if recommendations:
+            print(f"Best route distance: {recommendations[0].get('total_distance_km', 'N/A'):.2f} km\n")
+        
+        # Tentukan message berdasarkan apakah timeout tercapai
+        if timeout_reached and len(recommendations) < num_routes:
+            message = f"Timeout reached. Generated {len(recommendations)}/{num_routes} route recommendations in {elapsed_time:.2f}s"
+        else:
+            message = f"Successfully generated {len(recommendations)} route recommendations"
         
         return RouteRecommendationResponse(
             success=True,
-            message=f"Successfully generated {len(recommendations)} route recommendations",
+            message=message,
             data=response_data,
             timestamp=datetime.now().isoformat()
         )

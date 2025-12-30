@@ -1,0 +1,76 @@
+================================================================================
+LAPORAN HYPERPARAMETER TUNING
+Hybrid Genetic Algorithm - Rekomendasi Rute Wisata
+================================================================================
+
+RINGKASAN STATISTIK
+--------------------------------------------------------------------------------
+Total konfigurasi diuji: 6912
+Jumlah percobaan per konfigurasi: 3
+Total eksperimen: 20736
+
+Rentang Jarak: 16.84 - 28.04 km
+Rentang Waktu Eksekusi: 7.60 - 328.66 s
+Rentang Tingkat Kelayakan: 0.0% - 100.0%
+
+
+================================================================================
+KONFIGURASI TERBAIK (Jarak Minimum)
+================================================================================
+Ukuran Populasi: 100
+Jumlah Generasi: 500
+Tingkat Crossover: 0.9
+Tingkat Mutasi: 0.2
+Jumlah Elitisme: 10
+Ukuran Turnamen: 8
+Iterasi 2-Opt: 500
+
+Rata-rata Jarak: 16.84 ± 0.81 km
+Rata-rata Waktu Eksekusi: 34.60 ± 0.02 s
+Tingkat Kelayakan: 100.0%
+Rata-rata Peningkatan: 71.1%
+Generasi Konvergensi: 4
+
+
+================================================================================
+ANALISIS PENGARUH PARAMETER
+================================================================================
+
+UKURAN POPULASI:
+   100: Jarak=22.35km, Waktu=38.92s
+   300: Jarak=22.82km, Waktu=111.40s
+   500: Jarak=22.82km, Waktu=142.86s
+   700: Jarak=22.69km, Waktu=108.25s
+
+JUMLAH GENERASI:
+   300: Jarak=23.75km, Waktu=60.65s, Konvergensi=5
+   500: Jarak=22.89km, Waktu=100.76s, Konvergensi=5
+   700: Jarak=22.27km, Waktu=98.44s, Konvergensi=5
+  1000: Jarak=21.76km, Waktu=141.59s, Konvergensi=5
+
+TINGKAT CROSSOVER:
+  0.60: Jarak=22.82km, Peningkatan=58.1%
+  0.70: Jarak=22.69km, Peningkatan=58.2%
+  0.80: Jarak=22.63km, Peningkatan=58.4%
+  0.90: Jarak=22.53km, Peningkatan=58.8%
+
+TINGKAT MUTASI:
+  0.01: Jarak=22.70km, Peningkatan=58.5%
+  0.05: Jarak=22.67km, Peningkatan=58.4%
+  0.20: Jarak=22.70km, Peningkatan=58.2%
+  0.50: Jarak=22.61km, Peningkatan=58.3%
+
+JUMLAH ELITISME:
+    2: Jarak=23.29km, Peningkatan=57.1%
+    5: Jarak=22.64km, Peningkatan=58.5%
+   10: Jarak=22.08km, Peningkatan=59.6%
+
+UKURAN TURNAMEN:
+    3: Jarak=23.22km, Waktu=100.36s
+    5: Jarak=22.66km, Waktu=100.46s
+    8: Jarak=22.13km, Waktu=100.25s
+
+ITERASI 2-OPT:
+    50: Jarak=22.67km, Waktu=100.41s, Peningkatan=58.5%
+   100: Jarak=22.67km, Waktu=100.22s, Peningkatan=58.4%
+   500: Jarak=22.67km, Waktu=100.45s, Peningkatan=58.2%
